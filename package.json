@@ -1,1 +1,17 @@
-{}
+{
+  "name": "employee-management-system",
+  "version": "1.0.0",
+  "description": "PERN Stack Employee Management System",
+  "main": "index.js",
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

@@ -1,4 +1,4 @@
-import Employee from "../model/employee.model.js";
+import { Employee } from "../model/index.js";
 
 export const createEMP = async (req, res) => {
   try {
@@ -9,21 +9,25 @@ export const createEMP = async (req, res) => {
         message: "please give all required fields",
       });
     }
-    const exist = await Employee.findOne({ email });
+
+    // Check if employee exists with the same email
+    const exist = await Employee.findOne({ where: { email } });
     if (exist) {
       return res.status(400).json({
         success: false,
         message: "employee with this email already exists",
       });
     }
-    const newEMP = new Employee({
+
+    // Create employee using Sequelize
+    const savedEMP = await Employee.create({
       name,
       department,
       position,
       email,
       salary,
     });
-    const savedEMP = await newEMP.save();
+
     res.status(201).json({
       success: true,
       data: savedEMP,
@@ -33,14 +37,21 @@ export const createEMP = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
 export const AllEMP = async (req, res) => {
   try {
-    const employees = await Employee.find();
+    console.log("Fetching all employees, auth user:", req.user?.id);
+
+    const employees = await Employee.findAll();
+    console.log(`Found ${employees.length} employee records`);
+
     res.status(200).json({
       success: true,
+      count: employees.length,
       data: employees,
     });
   } catch (error) {
+    console.error("Error in AllEMP:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -50,7 +61,7 @@ export const AllEMP = async (req, res) => {
 
 export const findEMPbyID = async (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id);
+    const employee = await Employee.findByPk(req.params.id);
     if (!employee)
       return res
         .status(404)
@@ -67,15 +78,21 @@ export const findEMPbyID = async (req, res) => {
 
 export const updateEMP = async (req, res) => {
   try {
-    const employee = await Employee.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    //! NOT GONNA VALIDATE here cuz not all are required to be update
+    // we only be called by the admin
+
+    const [updated] = await Employee.update(req.body, {
+      where: { id: req.params.id },
     });
-    if (!employee) {
+
+    if (!updated) {
       return res.status(404).json({
         success: false,
         message: "employee not found",
       });
     }
+    const employee = await Employee.findByPk(req.params.id);
+
     res.status(200).json({
       success: true,
       data: employee,
@@ -91,14 +108,17 @@ export const updateEMP = async (req, res) => {
 
 export const deleteEMP = async (req, res) => {
   try {
-    const employee = await Employee.findByIdAndDelete(req.params.id);
+    const deleted = await Employee.destroy({
+      where: { id: req.params.id },
+    });
 
-    if (!employee) {
+    if (!deleted) {
       return res.status(404).json({
         success: false,
         message: "employee not found",
       });
     }
+
     res.status(200).json({
       success: true,
       message: "employee deleted",

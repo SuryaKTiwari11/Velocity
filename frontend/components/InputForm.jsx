@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { employeeApi } from "../src/front2backconnect/api";
+import useAuthStore from "../src/store/authStore";
+
 const InputForm = () => {
   const navigate = useNavigate();
+  const { isAdmin, isAuthenticated } = useAuthStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -10,6 +13,19 @@ const InputForm = () => {
     department: "",
     salary: "",
   });
+  const [error, setError] = useState(null);
+
+  // Check admin authorization
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+      if (!isAdmin) {
+      navigate('/profile');
+      return;
+    }
+  }, [isAuthenticated, isAdmin, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -17,111 +33,112 @@ const InputForm = () => {
       [e.target.name]: e.target.value,
     });
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    
     try {
       const data = {
         ...formData,
-        salary: Number(formData.salary),
+        // Convert salary to number if provided, otherwise null
+        salary: formData.salary ? Number(formData.salary) : null,
+        // Set null for empty strings
+        position: formData.position || null,
+        department: formData.department || null
       };
-      await employeeApi.createEMP(data);
-      navigate("/");
+        await employeeApi.createEMP(data);
+      navigate("/hradmin");
     } catch (error) {
-    console.log(error)
+      setError(error.response?.data?.message || "Failed to create employee");
+      console.error(error);
     }
-};
-const handleCancel =async()=>{
-    navigate('/');
-}
+  };
 
   return (
-    <div>
-      <div className="flex items-center justify-center bg-black h-screen">
-        <div className="bg-gray-900 p-5 m-4 w-100">
-          <h1 className="text-3xl font-bold text-white text-center mb-6">
-            INPUT FORM
-          </h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className=" text-white mb-2">NAME</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter name"
-                className="w-full px-4 py-2 bg-gray-800 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className=" text-white m-2">position</label>
-              <input
-                type="text"
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-                placeholder="Enter position"
-                className="w-full px-4 py-2 bg-gray-800 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className=" text-white m-2">email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter email"
-                className="w-full px-4 py-2 bg-gray-800 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
-                Department
-              </label>
-              <input
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                placeholder="Enter department"
-                className="w-full px-4 py-2 bg-gray-800 text-white"
-                required
-              />
-            </div>
-            <div>
-              <label className=" text-white m-2">salary</label>
-              <input
-                type="number"
-                name="salary"
-                value={formData.salary}
-                onChange={handleChange}
-                placeholder="Enter salary"
-                className="w-full px-4 py-2 bg-gray-800 text-white"
-                required
-              />
-            </div>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="w-full py-2 px-4 bg-red-700 text-black"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="w-full py-2 px-4 bg-blue-600 text-white"
-              >
-                Submit
-              </button>
-            </div>
-          </form>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Add New Employee</h1>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 p-2 mb-4">
+          {error}
         </div>
-      </div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="block mb-1">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="border p-2 w-full"
+            required
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label className="block mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="border p-2 w-full"
+            required
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label className="block mb-1">Position</label>
+          <input
+            type="text"
+            name="position"
+            value={formData.position}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+        
+        <div className="mb-3">
+          <label className="block mb-1">Department</label>
+          <input
+            type="text"
+            name="department"
+            value={formData.department}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+        
+        <div className="mb-4">
+          <label className="block mb-1">Salary</label>
+          <input
+            type="number"
+            name="salary"
+            value={formData.salary}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/hradmin")}
+            className="bg-gray-300 px-3 py-1"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-green-500 text-white px-3 py-1"
+          >
+            Add Employee
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

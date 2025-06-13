@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { employeeApi } from "../src/front2backconnect/api";
+import useAuthStore from "../src/store/authStore";
 
 const EditEmployee = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { isAdmin, user, isAuthenticated } = useAuthStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,139 +15,145 @@ const EditEmployee = () => {
     salary: "",
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const employee = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    const fetchEmployee = async () => {
       try {
         const response = await employeeApi.EmpByID(id);
-        setFormData(response.data.data);
+        const employeeData = response.data.data;
+        if (!isAdmin) {
+          setError("Only administrators can edit employee information");
+          navigate('/profile');
+          return;
+        }
+        setFormData(employeeData);
         setLoading(false);
       } catch (error) {
-        console.log(error);
+        setError(error.response?.data?.message || "Failed to fetch employee data");
+        console.error(error);
+        navigate('/hradmin');
       }
     };
 
-    employee();
-  }, [id]);
+    fetchEmployee();
+  }, [id, isAuthenticated, isAdmin, user, navigate]);
 
   const handleChange = (e) => {
-    e.preventDefault();
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-        try {
-      await employeeApi.updateEMP(id, formData);
-      navigate("/");
+    try {
+      // Prepare data with proper handling of empty/null values
+      const data = {
+        ...formData,
+        // Convert salary to number if provided, otherwise null
+        salary: formData.salary ? Number(formData.salary) : null,
+        // Make sure empty strings are converted to null
+        position: formData.position || null,
+        department: formData.department || null
+      };      await employeeApi.updateEMP(id, data);
+      navigate("/hradmin");
     } catch (error) {
-      console.log(error);
+      setError(error.response?.data?.message || "Failed to update employee");
+      console.error(error);
     }
   };
-  const handleCancel = () => {
-    navigate("/");
-  };
-  if (loading)
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="bg-gray-900 p-8 w-full max-w-lg">
-        <h1 className="text-3xl font-bold text-white text-center mb-8">
-          Edit Employee
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className=" text-gray-300 text-sm font-medium mb-2">
-              Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter name"
-              className="w-full px-4 py-2 bg-gray-800  text-white placeholder-gray-400 "
-              required
-            />
-          </div>
-          <div>
-            <label className=" text-gray-300 text-sm font-medium mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              className="w-full px-4 py-2 bg-gray-800 text-white placeholder-gray-400 "
-              required
-            />
-          </div>
-          <div>
-            <label className=" text-gray-300 text-sm font-medium mb-2">
-              Position
-            </label>
-            <input
-              type="text"
-              name="position"
-              value={formData.position}
-              onChange={handleChange}
-              placeholder="Enter position"
-              className="w-full px-4 py-2 bg-gray-800 text-white placeholder-gray-400 "
-              required
-            />
-          </div>
-          <div>
-            <label className=" text-gray-300 text-sm font-medium mb-2">
-              Department
-            </label>
-            <input
-              type="text"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              placeholder="Enter department"
-              className="w-full px-4 py-2 bg-gray-800 text-white placeholder-gray-400 "
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-300 text-sm font-medium mb-2">
-              Salary
-            </label>
-            <input
-              type="number"
-              name="salary"
-              value={formData.salary}
-              onChange={handleChange}
-              placeholder="Enter salary"
-              className="w-full px-4 py-2 bg-gray-800 text-white placeholder-gray-400  "
-              required
-            />
-          </div>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="w-full py-2 px-4 bg-red-600 text-white"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-blue-600 text-white"
-            >
-              Update
-            </button>
-          </div>
-        </form>
-      </div>
+    <div className="p-4 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Edit Employee</h1>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 p-2 mb-4">
+          {error}
+        </div>
+      )}
+      
+      <form onSubmit={handleSubmit}>
+        <div className="mb-3">
+          <label className="block mb-1">Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="border p-2 w-full"
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="block mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            className="border p-2 w-full"
+            required
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="block mb-1">Position</label>
+          <input
+            type="text"
+            name="position"
+            value={formData.position || ""}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+
+        <div className="mb-3">
+          <label className="block mb-1">Department</label>
+          <input
+            type="text"
+            name="department"
+            value={formData.department || ""}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block mb-1">Salary</label>
+          <input
+            type="number"
+            name="salary"
+            value={formData.salary || ""}
+            onChange={handleChange}
+            className="border p-2 w-full"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => navigate("/hradmin")}
+            className="bg-gray-300 px-3 py-1"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-3 py-1"
+          >
+            Save
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
