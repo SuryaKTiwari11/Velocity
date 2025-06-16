@@ -1,43 +1,40 @@
 import nodemailer from "nodemailer";
 
-// Use environment variables for email configuration
+//! NODE MAILER DOCUMENTATION
+//! https://nodemailer.com/about/
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.ethereal.email",
-  port: parseInt(process.env.EMAIL_PORT || "587", 10),
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-// This configuration allows using environment variables
-// while maintaining a fallback for development
-
-const otpFormat = (otp, name, purpose = "email_verification") => {
+const otpFormat = (otp, name, purpose = "verification") => {
   const subject =
-    purpose === "password_reset" ? "Password Reset Code" : "OTP Verification";
+    purpose === "passReset" ? "Password Reset" : "OTP Verification";
 
   const message =
-    purpose === "password_reset"
-      ? "Here is your password reset code. It will expire in 10 minutes."
-      : "Here is your verification code. It will expire in 10 minutes.";
+    purpose === "passReset"
+      ? " your password reset code. will expire in 10 minutes."
+      : " your verification code. will expire in 10 minutes.";
 
   return `
     <h1>${subject}</h1>
     <p>Dear ${name},</p>
     <p>${message}</p>
-    <h2 style="font-size: 24px; letter-spacing: 2px; text-align: center; padding: 10px; background-color: #f0f0f0; border-radius: 5px;"><strong>${otp}</strong></h2>
-    <p>If you didn't request this code, you can safely ignore this email.</p>
-    <p>Thank you,<br>EMS Team</p>
+    <h2><strong>${otp}</strong></h2>
+   
   `;
 };
 
-const otpMail = async (email, otp, name, purpose = "email_verification") => {
+const otpMail = async (email, otp, name, purpose = "verification") => {
   try {
     const subject =
-      purpose === "password_reset" ? "Password Reset Code" : "OTP Verification";
+      purpose === "passReset" ? "Password Reset Code" : "OTP Verification";
     const mailOptions = {
-      from: process.env.EMAIL_USER ,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: subject,
       html: otpFormat(otp, name, purpose),
@@ -63,7 +60,7 @@ const emailService = async (
   email,
   otp,
   name = "User",
-  purpose = "email_verification"
+  purpose = "verification"
 ) => {
   try {
     return await otpMail(email, otp, name, purpose);
@@ -78,7 +75,7 @@ const emailService = async (
 
 const testEmailService = async (testEmail) => {
   try {
-    const testOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    const testOtp = crypto.randomInt(100000, 999999).toString().padStart(6, "0");
     return await otpMail(testEmail, testOtp, "Test User");
   } catch (error) {
     console.error("Test email failed:", error);
@@ -89,6 +86,5 @@ const testEmailService = async (testEmail) => {
   }
 };
 
-// Export all functions
 export { emailService, testEmailService, otpMail, otpFormat };
-export default emailService;
+

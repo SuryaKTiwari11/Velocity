@@ -7,7 +7,6 @@ const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
       isAuthenticated: false,
       isAdmin: false,
       isLoading: false,
@@ -17,11 +16,14 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.login(credentials);
-          const { user, token, isAdmin } = response.data;
+          const { user } = response.data;
+
+          // Make sure we're correctly extracting isAdmin from the user object
+          const isAdmin = user && user.isAdmin === true;
+          console.log("Login successful, isAdmin:", isAdmin);
 
           set({
             user,
-            token,
             isAdmin,
             isAuthenticated: true,
             isLoading: false,
@@ -54,11 +56,10 @@ const useAuthStore = create(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.checkAuthSuccess();
-          const { user, token } = response.data;
+          const { user } = response.data;
 
           set({
             user,
-            token,
             isAdmin: user.isAdmin || false,
             isAuthenticated: true,
             isLoading: false,
@@ -127,34 +128,22 @@ const useAuthStore = create(
           // Just reset state without making API call for hardcoded admin
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isAdmin: false,
             isLoading: false,
             error: null,
           });
 
-          // Clear any stored tokens
-          localStorage.removeItem("sso-token");
-
           return;
         }
 
         try {
           console.log("Calling logout API endpoint");
-          const response = await authApi.logout();
-
-          // Clear all auth-related storage
-          localStorage.removeItem("sso-token");
-
-          // Debugging output
-          console.log("Logout response:", response.data);
-          console.log("Cleared auth tokens from storage");
+          await authApi.logout();
 
           // Reset the auth state
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isAdmin: false,
             isLoading: false,
@@ -164,11 +153,8 @@ const useAuthStore = create(
           console.error("Logout error:", error);
 
           // Even if the API call fails, clear local state for better UX
-          localStorage.removeItem("sso-token");
-
           set({
             user: null,
-            token: null,
             isAuthenticated: false,
             isAdmin: false,
             error: error.response?.data?.message || "Logout failed",
@@ -186,16 +172,33 @@ const useAuthStore = create(
           currentState.isAdmin &&
           currentState.isAuthenticated
         ) {
+          console.log("Admin user found in state, skipping API check");
           set({ isLoading: false });
           return true;
         }
 
         try {
+          console.log("Checking authentication with backend...");
           const response = await authApi.getCurrentUser();
-          const { user, isAdmin } = response.data;
+          const { user, employeeInfo } = response.data;
 
-          set({
+          // Make sure we're correctly extracting isAdmin from the user object
+          const isAdmin = user && user.isAdmin === true;
+          console.log(
+            "Auth check successful, isAdmin:",
+            isAdmin,
+            "user:",
             user,
+            "employeeInfo:",
+            employeeInfo
+          );
+
+          // Store both user and employee info
+          set({
+            user: {
+              ...user,
+              employeeInfo: employeeInfo || null,
+            },
             isAdmin,
             isAuthenticated: true,
             isLoading: false,
@@ -203,6 +206,7 @@ const useAuthStore = create(
 
           return true;
         } catch (error) {
+          console.error("Auth check failed:", error);
           set({
             user: null,
             isAuthenticated: false,
@@ -211,7 +215,8 @@ const useAuthStore = create(
           });
           return false;
         }
-      }, // Helper function to check if user can edit an employee
+      },
+      // Helper function to check if user can edit an employee
       canEditEmployee: (employeeEmail) => {
         const { isAdmin } = get();
         // Only admins can edit employees
@@ -221,6 +226,12 @@ const useAuthStore = create(
     {
       name: "auth-storage", // name for the storage
       getStorage: () => localStorage, // use localStorage for persistence
+      partialize: (state) => ({
+        // Only persist these fields to localStorage
+        user: state.user,
+        isAdmin: state.isAdmin,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

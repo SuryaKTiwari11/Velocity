@@ -5,16 +5,21 @@ const LandingPage = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-6 bg-black min-h-screen text-center">
       <h1 className="text-white text-4xl font-bold">Welcome to Employee Management System</h1>
-      <p className="text-gray-400">Please login or signup to continue</p>
-      <div className="flex gap-4 mt-4">
+      <p className="text-gray-400">login, signup, or verify your email</p>
+      <div className="flex flex-wrap gap-4 mt-4 justify-center">
         <Link to="/login">
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md text-lg">
+          <button className="bg-purple-600 text-white px-6 py-2 text-lg">
             Login
           </button>
         </Link>
         <Link to="/signup">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-lg">
+          <button className="bg-green-600 text-white px-6 py-2 text-lg">
             Sign Up
+          </button>
+        </Link>
+        <Link to="/verify-otp">
+          <button className="bg-blue-600 text-white px-6 py-2 text-lg">
+            Verify Email
           </button>
         </Link>
       </div>

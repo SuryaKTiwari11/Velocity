@@ -1,10 +1,4 @@
 import { DataTypes } from "sequelize";
-
-/**
- * Creates and initializes the Employee model
- * @param {import('sequelize').Sequelize} sequelize - The Sequelize instance
- * @returns {import('sequelize').Model} The initialized Employee model
- */
 const createEmployeeModel = (sequelize) => {
   const Employee = sequelize.define(
     "Employee",

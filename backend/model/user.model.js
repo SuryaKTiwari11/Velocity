@@ -40,7 +40,7 @@ const createUserModel = (sequelize) => {
         allowNull: true,
         defaultValue:
           "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
-      },
+      }, //!https://docs.gravatar.com/sdk/images/
     },
     {
       timestamps: true,

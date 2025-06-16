@@ -34,7 +34,7 @@ const EditEmployee = () => {
         setFormData(employeeData);
         setLoading(false);
       } catch (error) {
-        setError(error.response?.data?.message || "Failed to fetch employee data");
+        setError( "Failed to fetch employee data");
         console.error(error);
         navigate('/hradmin');
       }
@@ -50,18 +50,16 @@ const EditEmployee = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Prepare data with proper handling of empty/null values
       const data = {
         ...formData,
-        // Convert salary to number if provided, otherwise null
         salary: formData.salary ? Number(formData.salary) : null,
-        // Make sure empty strings are converted to null
         position: formData.position || null,
         department: formData.department || null
-      };      await employeeApi.updateEMP(id, data);
+      };
+      await employeeApi.updateEMP(id, data);
       navigate("/hradmin");
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to update employee");
+      setError( "Failed to update employee");
       console.error(error);
     }
   };
@@ -71,11 +69,11 @@ const EditEmployee = () => {
   }
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-md  mx-auto">
       <h1 className="text-2xl font-bold mb-4">Edit Employee</h1>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 p-2 mb-4">
+        <div className="bg-red-100  text-red-700 p-2 mb-4">
           {error}
         </div>
       )}
@@ -149,6 +147,7 @@ const EditEmployee = () => {
           <button
             type="submit"
             className="bg-blue-500 text-white px-3 py-1"
+            onClick={handleSubmit}
           >
             Save
           </button>

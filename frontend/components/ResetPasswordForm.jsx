@@ -9,53 +9,68 @@ const ResetPasswordForm = () => {
   const [resetToken, setResetToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  useEffect(() => {
-    // Get reset token from localStorage
+  const [isSuccess, setIsSuccess] = useState(false);  useEffect(() => {
+   
     const token = localStorage.getItem("resetToken");
     if (!token) {
-      // Redirect to forgot password if token is not found
-      navigate("/forgot-password");
+   
+      setMessage("Reset token not found. Redirecting to forgot password page...");
+      setTimeout(() => {
+        navigate("/forgot-password");
+      }, 1000);
     } else {
       setResetToken(token);
     }
   }, [navigate]);
-
-  const validatePassword = (password) => {
-    // Add your password validation logic here
+  // Function to check password strength
+  const checkPasswordStrength = (password) => {
+    // Minimum length check
     if (password.length < 8) {
-      return "Password must be at least 8 characters long";
+      return { isStrong: false, message: "Password must be at least 8 characters long" };
     }
-    return null;
+    
+    // Check for at least one uppercase letter, one lowercase letter, and one number
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      return { 
+        isStrong: false, 
+        message: "Password must include at least one uppercase letter, one lowercase letter, and one number" 
+      };
+    }
+    
+    return { isStrong: true };
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate password
-    const passwordError = validatePassword(newPassword);
-    if (passwordError) {
-      setMessage(passwordError);
+    if(!newPassword || !confirmPassword) {
+      setMessage("Please fill in both password fields");
       return;
     }
     
-    // Validate passwords match
+    // Check password strength
+    const strengthCheck = checkPasswordStrength(newPassword);
+    if (!strengthCheck.isStrong) {
+      setMessage(strengthCheck.message);
+      return;
+    }
+    
     if (newPassword !== confirmPassword) {
       setMessage("Passwords don't match");
       return;
     }
-    
-    // Double-check we have token
+
     if (!resetToken) {
       setMessage("Reset token not found. Please restart the password reset process.");
       return;
     }
     
     setIsLoading(true);
-    setMessage("");
-    
-    try {
-      console.log("Attempting password reset with token:", resetToken);
+    setMessage("");try {
       const response = await authApi.resetPassword(resetToken, newPassword);
       
       if (response.data.success) {
@@ -66,15 +81,31 @@ const ResetPasswordForm = () => {
         localStorage.removeItem("resetEmail");
         localStorage.removeItem("resetToken");
         
-        // Navigate to login after successful reset
-        setTimeout(() => navigate("/login"), 2000);
+        // Add timeout to show success message before redirecting
+        setTimeout(() => {
+          navigate("/login");
+        }, 1000);
       } else {
         throw new Error(response.data.error || "Password reset failed");
       }
     } catch (error) {
       setIsSuccess(false);
-      console.error("Password reset error:", error);
-      setMessage(error.response?.data?.error || error.message || "Password reset failed. Please try again.");
+      const errorMsg = error.response?.data?.error || error.message || "Password reset failed. Please try again.";
+      
+      // Handle specific error for same password
+      if (errorMsg.includes("same as your current password")) {
+        setMessage("You cannot use your current password as your new password. Please choose a different password.");
+      } else {
+        setMessage(`Error: ${errorMsg}`);
+        
+        // If token is invalid, redirect to forgot password
+        if (errorMsg.includes("token") && (errorMsg.includes("invalid") || errorMsg.includes("expired"))) {
+          setTimeout(() => {
+            localStorage.removeItem("resetToken");
+            navigate("/forgot-password");
+          }, 1000);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +113,7 @@ const ResetPasswordForm = () => {
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center">
-      <div className="p-6 bg-white rounded-lg shadow-md max-w-md mx-auto">
+      <div className="p-6 bg-white">
         <h1 className="text-2xl font-bold mb-6 text-center">Set New Password</h1>
         
         {message && (
@@ -95,23 +126,23 @@ const ResetPasswordForm = () => {
           </div>
         )}
         
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+        <form onSubmit={handleSubmit}>          <div className="mb-4">
             <label htmlFor="newPassword" className="block mb-1 font-medium">
               New Password
             </label>
+            <div className="text-xs text-gray-500 mb-1">
+              Password must be at least 8 characters and include uppercase, lowercase, and numbers
+            </div>
             <input
               type="password"
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full p-2 border"
               placeholder="Enter new password"
               required
             />
-            <p className="mt-1 text-sm text-gray-500">
-              Must be at least 8 characters long
-            </p>
+      
           </div>
           
           <div className="mb-4">
@@ -123,7 +154,7 @@ const ResetPasswordForm = () => {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full p-2 border  "
               placeholder="Confirm new password"
               required
             />
@@ -133,14 +164,14 @@ const ResetPasswordForm = () => {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition w-1/2"
+              className="px-4 py-2 bg-gray-200 text-black"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition w-1/2 disabled:opacity-50"
+              className="px-4 py-2 bg-blue-500 text-white"
             >
               {isLoading ? "Resetting..." : "Reset Password"}
             </button>

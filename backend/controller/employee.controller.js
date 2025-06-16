@@ -1,5 +1,4 @@
-import { Employee } from "../model/index.js";
-
+import { Employee} from "../model/model.js";
 export const createEMP = async (req, res) => {
   try {
     const { name, department, position, email, salary } = req.body;
@@ -9,8 +8,6 @@ export const createEMP = async (req, res) => {
         message: "please give all required fields",
       });
     }
-
-    // Check if employee exists with the same email
     const exist = await Employee.findOne({ where: { email } });
     if (exist) {
       return res.status(400).json({
@@ -18,8 +15,6 @@ export const createEMP = async (req, res) => {
         message: "employee with this email already exists",
       });
     }
-
-    // Create employee using Sequelize
     const savedEMP = await Employee.create({
       name,
       department,
@@ -40,18 +35,13 @@ export const createEMP = async (req, res) => {
 
 export const AllEMP = async (req, res) => {
   try {
-    console.log("Fetching all employees, auth user:", req.user?.id);
-
     const employees = await Employee.findAll();
-    console.log(`Found ${employees.length} employee records`);
-
     res.status(200).json({
       success: true,
       count: employees.length,
       data: employees,
     });
   } catch (error) {
-    console.error("Error in AllEMP:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -78,9 +68,6 @@ export const findEMPbyID = async (req, res) => {
 
 export const updateEMP = async (req, res) => {
   try {
-    //! NOT GONNA VALIDATE here cuz not all are required to be update
-    // we only be called by the admin
-
     const [updated] = await Employee.update(req.body, {
       where: { id: req.params.id },
     });

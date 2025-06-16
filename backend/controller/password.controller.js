@@ -1,20 +1,17 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { User } from "../model/index.js";
+import { User } from "../model/model.js";
 import { sendOTP, verifyOTP } from "../helper/otpService.js";
 
-/**
- * Send OTP for email verification or other purposes
- */
 export const sendEmailOTP = async (req, res) => {
   try {
-    const { email, name = "User" } = req.body;
+    const { email } = req.body;
     if (!email)
       return res
         .status(400)
         .json({ success: false, message: "Email is required" });
 
-    const result = await sendOTP(email, name);
+    const result = await sendOTP(email);
     if (result.success)
       return res.status(200).json({
         success: true,
@@ -24,34 +21,27 @@ export const sendEmailOTP = async (req, res) => {
     else
       return res.status(500).json({
         success: false,
-        message: "Failed to send OTP",
+        message: "failed to send OTP",
         error: result.message,
       });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "Error in OTP processing",
+      message: "error in OTP processing",
       error: error.message,
     });
   }
 };
 
-/**
- * Forgot password - sends reset code to user's email
- */
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
+    if (!email)
       return res
         .status(400)
         .json({ success: false, error: "Email is required" });
-    }
 
-    // Find the user by email
     const user = await User.findOne({ where: { email } });
-
-    // For security reasons, don't reveal if the email exists or not
     if (!user) {
       return res.status(200).json({
         success: true,
@@ -59,22 +49,15 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // Send OTP with purpose "password_reset"
-    const result = await sendOTP(email, user.name, "password_reset");
-
-    if (result.success) {
-      return res.status(200).json({
-        success: true,
-        message: "Reset code sent successfully",
-        previewUrl: result.previewUrl,
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to send reset code",
-        error: result.message,
-      });
-    }
+    const result = await sendOTP(email, "passReset");
+    return res.status(result.success ? 200 : 500).json({
+      success: result.success,
+      message: result.success
+        ? "Reset code sent successfully"
+        : "Failed to send reset code",
+      ...(result.success && { previewUrl: result.previewUrl }),
+      ...(!result.success && { error: result.message }),
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -84,32 +67,24 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/**
- * Verify the OTP sent for password reset
- */
 export const verifyResetOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) {
+    if (!email || !otp)
       return res
         .status(400)
-        .json({ success: false, error: "Email and OTP are required" });
-    }
+        .json({ success: false, error: "email and OTP are required" });
 
-    // Verify the OTP using your OTP service with purpose "password_reset"
-    const result = await verifyOTP(email, otp, "password_reset");
-    if (!result.success) {
+    const result = await verifyOTP(email, otp, "passReset");
+    if (!result.success)
       return res.status(400).json({ success: false, error: result.message });
-    }
 
-    // Generate a time-limited token for password reset
     const resetToken = jwt.sign(
-      { email, purpose: "password_reset" },
+      { email, purpose: "passReset" },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" } // Short expiry for security
+      { expiresIn: "15m" }
     );
 
-    // Return the token for the next step
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",
@@ -120,21 +95,14 @@ export const verifyResetOTP = async (req, res) => {
   }
 };
 
-/**
- * Reset password using verified token
- */
 export const resetPassword = async (req, res) => {
   try {
     const { resetToken, newPassword } = req.body;
-
-    if (!resetToken || !newPassword) {
+    if (!resetToken || !newPassword)
       return res.status(400).json({
         success: false,
         error: "Reset token and new password are required",
-      });
-    }
-
-    // Password complexity validation
+      }); // Check password length
     if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
@@ -142,53 +110,56 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Verify the reset token
+    // Check password complexity
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasLowercase = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+
+    if (!hasUppercase || !hasLowercase || !hasNumber) {
+      return res.status(400).json({
+        success: false,
+        error:
+          "Password must include at least one uppercase letter, one lowercase letter, and one number",
+      });
+    }
+
     let decoded;
     try {
       decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
     } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        return res.status(400).json({
-          success: false,
-          error: "Reset token has expired. Please request a new one.",
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          error: "Invalid reset token",
-        });
-      }
-    }
-
-    // Check if token is for password reset
-    if (!decoded || decoded.purpose !== "password_reset") {
       return res.status(400).json({
         success: false,
-        error: "Invalid reset token",
+        error:
+          error.name === "TokenExpiredError"
+            ? "Reset token has expired. Please request a new one."
+            : "Invalid reset token",
       });
     }
 
-    // Find the user
+    if (!decoded || decoded.purpose !== "passReset")
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid reset token" });
     const user = await User.findOne({ where: { email: decoded.email } });
-    if (!user) {
-      return res.status(404).json({
+    if (!user)
+      return res.status(404).json({ success: false, error: "User not found" });
+
+    // Check if the new password is the same as the old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
         success: false,
-        error: "User not found",
+        error: "New password cannot be the same as your current password",
       });
     }
 
-    // Hash the new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update the password
     await user.update({ password: hashedPassword });
 
-    // Return success
-    return res.status(200).json({
-      success: true,
-      message: "Password reset successfully",
-    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }

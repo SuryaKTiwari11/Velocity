@@ -2,28 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../src/store/authStore";
 import { authApi } from "../src/front2backconnect/api.js";
-
-const SSOLoginFooter = () => (
-  <div className="mt-6 border-t pt-4">
-    <p className="text-center mb-2">Or login with</p>
-    <div className="flex justify-center space-x-4">
-      <button
-        type="button"
-        onClick={() => window.location.href = authApi.getGoogleAuthUrl()}
-        className="px-4 py-2 border rounded hover:bg-gray-50"
-      >
-        Google
-      </button>
-      <button
-        type="button"
-        onClick={() => window.location.href = authApi.getGithubAuthUrl()}
-        className="px-4 py-2 border rounded hover:bg-gray-50"
-      >
-        GitHub
-      </button>
-    </div>
-  </div>
-);
+import SSO from "./SSO";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -55,7 +34,7 @@ const LoginForm = () => {
           if (result.success) {
             setTimeout(() => {
               navigate(useAuthStore.getState().isAdmin ? "/hradmin" : "/profile");
-            }, 500);
+            }, 1000);
           } else {
             setError(result.error || "Authentication failed");
           }
@@ -171,19 +150,21 @@ const LoginForm = () => {
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center">
-      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full rounded shadow">
+      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">
         {needsVerification ? (
           <>
             <h1 className="text-2xl font-bold mb-4">Verify Your Email</h1>
             {error && <div className="bg-red-100 text-red-700 p-2 mb-4">{error}</div>}
             {previewUrl && (
-              <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded">
+              <div className="mb-4 p-3 bg-blue-100 text-blue-700 ">
                 <p className="mb-2 font-semibold">Debug Mode:</p>
                 <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="underline">
                   View Email Preview
                 </a>
               </div>
             )}
+
+
             <p className="mb-4 text-gray-600">Enter the code sent to {formData.email}</p>
             <form onSubmit={handleVerificationSubmit}>
               <input
@@ -195,13 +176,13 @@ const LoginForm = () => {
                 required
               />
               <div className="flex gap-2 mb-4">
-                <button className="bg-blue-500 text-white p-2 rounded w-full" disabled={isLoading}>
+                <button className="bg-blue-500 text-white p-2  w-full" disabled={isLoading}>
                   {isLoading ? "Verifying..." : "Verify Email"}
                 </button>
                 <button
                   type="button"
                   onClick={handleResendCode}
-                  className="bg-gray-200 text-gray-800 p-2 rounded w-full"
+                  className="bg-gray-200 text-gray-800 p-2  w-full"
                   disabled={isLoading}
                 >
                   Resend Code
@@ -241,22 +222,21 @@ const LoginForm = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/forgot-password")}
-                  className="text-sm text-blue-500 underline"
+                  className="text-sm text-red-500 "
                 >
                   Forgot Password?
                 </button>
               </div>
               <button className="bg-blue-500 text-white p-2 rounded w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
-              </button>
-            </form>
+              </button>            </form>
 
-            <SSOLoginFooter />
+            <SSO />
 
             <div className="mt-4 text-center">
               <p>
-                Don't have an account?{" "}
-                <button onClick={() => navigate("/signup")} className="text-blue-500 underline">
+                no account?
+                <button onClick={() => navigate("/signup")} className="text-red-500 ">
                   Sign Up
                 </button>
               </p>

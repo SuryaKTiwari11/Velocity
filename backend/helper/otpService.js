@@ -1,27 +1,18 @@
-import { OTP } from "../model/index.js";
-import emailService from "../services.js/email.js";
+import { OTP, User } from "../model/model.js";
+import { emailService } from "./email.js";
 import crypto from "crypto";
 import { Op } from "sequelize";
 import bcrypt from "bcryptjs";
 
-const generateOTP = (length = 6) => {
-  const otp = crypto.randomInt(10 ** (length - 1), 10 ** length).toString();
+const generateOTP = () => {
+  const otp = crypto.randomInt(100000, 999999).toString().padStart(6, "0");
   return otp;
 };
 
-const sendOTP = async (
-  email,
-  name = "User",
-  purpose = "email_verification"
-) => {
+const sendOTP = async (email, purpose = "verification") => {
   try {
-    // Generate a new OTP
     const otp = generateOTP();
-
-    // Hash the OTP before storing it
     const hashedOtp = await bcrypt.hash(otp, 10);
-
-    // Store hashed OTP in database (with automatic expiry time from model default)
     await OTP.create({
       email,
       otp: hashedOtp,
@@ -30,10 +21,13 @@ const sendOTP = async (
       purpose,
     });
 
-    // Send the plain text OTP via email (not the hashed version)
-    const emailResult = await emailService(email, otp, name);
+    const emailResult = await emailService(email, otp, "User", purpose);
 
     if (emailResult.success) {
+      console.log(
+        "OTP email sent successfully with preview URL:",
+        emailResult.url
+      );
       return {
         success: true,
         previewUrl: emailResult.url,
@@ -51,27 +45,23 @@ const sendOTP = async (
   }
 };
 
-const verifyOTP = async (email, otp, purpose = "email_verification") => {
+const verifyOTP = async (email, otp, purpose = "verification") => {
   try {
-    // Find the most recent OTP for this email and purpose (we'll check verification status later)
     const otpRecord = await OTP.findOne({
       where: {
         email,
         verified: false,
         purpose,
       },
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt", "DESC"]], //!SABSE LATEST OTP
     });
 
-    // If no record found
-    if (!otpRecord) {
+    if (!otpRecord)
       return {
         success: false,
-        message: "No OTP found for this email. Please request a new one.",
+        message: "No OTP found.",
       };
-    }
 
-    // 1. Check if OTP has already been used
     if (otpRecord.verified) {
       return {
         success: false,
@@ -79,15 +69,13 @@ const verifyOTP = async (email, otp, purpose = "email_verification") => {
       };
     }
 
-    // 2. Check if max attempts reached
     if (otpRecord.attempts >= 5) {
       return {
         success: false,
-        message: "Max attempts reached. Please request a new OTP.",
+        message: "max attempts reached",
       };
     }
 
-    // 3. Check if OTP has expired
     if (new Date() > new Date(otpRecord.expiresAt)) {
       await otpRecord.update({ attempts: otpRecord.attempts + 1 });
       return {
@@ -96,11 +84,9 @@ const verifyOTP = async (email, otp, purpose = "email_verification") => {
       };
     }
 
-    // 4. Verify the OTP (compare hash)
     const isValidOtp = await bcrypt.compare(otp, otpRecord.otp);
 
     if (!isValidOtp) {
-      // Increment attempts counter for failed verification
       await otpRecord.update({ attempts: otpRecord.attempts + 1 });
 
       return {
@@ -109,7 +95,6 @@ const verifyOTP = async (email, otp, purpose = "email_verification") => {
       };
     }
 
-    // 5. Mark OTP as verified on success
     await otpRecord.update({ verified: true });
 
     return {
@@ -125,7 +110,7 @@ const verifyOTP = async (email, otp, purpose = "email_verification") => {
   }
 };
 
-const hasVerifiedOTP = async (email, purpose = "email_verification") => {
+const hasVerifiedOTP = async (email, purpose = "verification") => {
   try {
     const verifiedOtp = await OTP.findOne({
       where: {
@@ -133,7 +118,7 @@ const hasVerifiedOTP = async (email, purpose = "email_verification") => {
         verified: true,
         purpose,
         expiresAt: {
-          [Op.gt]: new Date(), // Not expired
+          [Op.gt]: new Date(),
         },
       },
       order: [["createdAt", "DESC"]],
@@ -147,3 +132,6 @@ const hasVerifiedOTP = async (email, purpose = "email_verification") => {
 };
 
 export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP };
+
+//!RECENTLY MEI KOI VERIFIED OTP HO TOH HI AGYE BADHNA HAI , TIME CONSTRAINT WALA FACTOR IS THERE
+//! this is used in verified OTP

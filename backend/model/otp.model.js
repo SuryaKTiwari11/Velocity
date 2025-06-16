@@ -1,5 +1,4 @@
 import { DataTypes } from "sequelize";
-
 const createOtpModel = (sequelize) => {
   const Otp = sequelize.define(
     "OTP",
@@ -21,7 +20,7 @@ const createOtpModel = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: () => {
-          return new Date(Date.now() + 10 * 60 * 1000);
+          return new Date(Date.now() + 10 * 60 * 1000); 
         },
       },
       verified: {
@@ -36,7 +35,7 @@ const createOtpModel = (sequelize) => {
       },
       purpose: {
         type: DataTypes.STRING,
-        defaultValue: "email_verification", // Can be "email_verification" or "password_reset"
+        defaultValue: "verification", 
         allowNull: false,
       },
     },

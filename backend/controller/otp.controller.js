@@ -1,21 +1,20 @@
 import { sendOTP, verifyOTP, hasVerifiedOTP } from "../helper/otpService.js";
-import { User } from "../model/index.js";
-
+import { User } from "../model/model.js";
 export const sendVerificationOTP = async (req, res) => {
-  const { email, name = "User" } = req.body;
+  const { email } = req.body;
   if (!email) {
     return res
       .status(400)
       .json({ success: false, message: "Email is required" });
   }
 
-  const result = await sendOTP(email, name);
+  const result = await sendOTP(email);
 
   if (result.success) {
     return res.status(200).json({
       success: true,
       message: result.message,
-      previewUrl: result.previewUrl, // In production, you'd remove this
+      previewUrl: result.previewUrl, //!NOT FOR PRODUCTION
     });
   } else {
     return res.status(500).json({ success: false, message: result.message });

@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { employeeApi } from "../src/front2backconnect/api";
-import Navbar from "./Navbar";
 import useAuthStore from "../src/store/authStore";
 
 const HRadminPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { isAuthenticated, isAdmin } = useAuthStore();
+  const { isAuthenticated, isAdmin, user } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Only fetch employees if the user is authenticated
-    if (isAuthenticated) {
-      fetchEmployees();
-    } else {
-      setLoading(false);
+    // Check if user is authenticated and is an admin
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
-  }, [isAuthenticated]);
+    
+    if (!isAdmin) {
+      navigate('/profile');
+      return;
+    }
+    
+    // Fetch employees for admin
+    fetchEmployees();
+  }, [isAuthenticated, isAdmin, navigate]);
   
   const fetchEmployees = async () => {
     try {
@@ -25,7 +32,7 @@ const HRadminPage = () => {
       setEmployees(response.data.data);
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      console.error("Failed to fetch employees:", error);
       setError("Failed to fetch employees. Please try again later.");
       setLoading(false);
     }
@@ -65,22 +72,26 @@ const HRadminPage = () => {
           </div>
         )}
         
-        {!isAuthenticated ? (
-          <div className="text-center text-white">
-            <h1 className="text-3xl font-bold mb-6">Welcome to Employee Management System</h1>
-            <p className="mb-6">Please login or signup to continue</p>
-            <div className="flex gap-4 justify-center">
-              <Link to="/login">
-                <button className="bg-blue-600 text-white px-6 py-2">Login</button>
-              </Link>
-              <Link to="/signup">
-                <button className="bg-green-600 text-white px-6 py-2">Signup</button>
-              </Link>
-            </div>
+        <div>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-white">HR Admin Dashboard</h1>
+            <Link to="/add">
+              <button className="bg-green-600 text-white px-6 py-2 ">
+                Add New Employee
+              </button>
+            </Link>
           </div>
-        ) : (
-          <div>
-            <h1 className="text-2xl font-bold mb-4 text-white">HR Admin Dashboard</h1>
+          
+          {loading ? (
+            <div className="text-center text-white">
+              <p className="text-xl">Loading employees...</p>
+            </div>
+          ) : employees.length === 0 ? (
+            <div className="text-center text-white">
+              <p className="text-xl mb-4">No employees found</p>
+              <p>Start by adding a new employee</p>
+            </div>
+          ) : (
             <div className="grid gap-4">
               {employees.map((employee) => (
                 <div
@@ -98,40 +109,36 @@ const HRadminPage = () => {
                       </p>
                       <p>
                         <span className="text-gray-400">Department: </span>
-                        {employee.department}
+                        {employee.department || 'Not set'}
                       </p>
                       <p>
                         <span className="text-gray-400">Position: </span>
-                        {employee.position}
+                        {employee.position || 'Not set'}
                       </p>
                       <p>
                         <span className="text-gray-400">Salary: </span> $
-                        {employee.salary}
+                        {employee.salary || '0'}
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-3">
-                    {isAdmin && (
-                      <>
-                        <Link to={`/edit/${employee.id}`}>
-                          <button className="bg-yellow-600 text-white px-4 py-2">
-                            Edit
-                          </button>
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(employee.id)}
-                          className="bg-red-600 text-white px-4 py-2"
-                        >
-                          Delete
-                        </button>
-                      </>
-                    )}
+                    <Link to={`/edit/${employee.id}`}>
+                      <button className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+                        Edit
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(employee.id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
