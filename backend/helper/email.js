@@ -9,6 +9,12 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Add connection pool settings for better performance
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  rateDelta: 1000,
+  rateLimit: 10,
 });
 
 const otpFormat = (otp, name, purpose = "verification") => {
@@ -75,7 +81,10 @@ const emailService = async (
 
 const testEmailService = async (testEmail) => {
   try {
-    const testOtp = crypto.randomInt(100000, 999999).toString().padStart(6, "0");
+    const testOtp = crypto
+      .randomInt(100000, 999999)
+      .toString()
+      .padStart(6, "0");
     return await otpMail(testEmail, testOtp, "Test User");
   } catch (error) {
     console.error("Test email failed:", error);
@@ -87,4 +96,3 @@ const testEmailService = async (testEmail) => {
 };
 
 export { emailService, testEmailService, otpMail, otpFormat };
-

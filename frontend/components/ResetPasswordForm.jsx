@@ -22,40 +22,12 @@ const ResetPasswordForm = () => {
       setResetToken(token);
     }
   }, [navigate]);
-  // Function to check password strength
-  const checkPasswordStrength = (password) => {
-    // Minimum length check
-    if (password.length < 8) {
-      return { isStrong: false, message: "Password must be at least 8 characters long" };
-    }
-    
-    // Check for at least one uppercase letter, one lowercase letter, and one number
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    
-    if (!hasUppercase || !hasLowercase || !hasNumber) {
-      return { 
-        isStrong: false, 
-        message: "Password must include at least one uppercase letter, one lowercase letter, and one number" 
-      };
-    }
-    
-    return { isStrong: true };
-  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); 
     
     if(!newPassword || !confirmPassword) {
       setMessage("Please fill in both password fields");
-      return;
-    }
-    
-    // Check password strength
-    const strengthCheck = checkPasswordStrength(newPassword);
-    if (!strengthCheck.isStrong) {
-      setMessage(strengthCheck.message);
       return;
     }
     
@@ -130,9 +102,7 @@ const ResetPasswordForm = () => {
             <label htmlFor="newPassword" className="block mb-1 font-medium">
               New Password
             </label>
-            <div className="text-xs text-gray-500 mb-1">
-              Password must be at least 8 characters and include uppercase, lowercase, and numbers
-            </div>
+          
             <input
               type="password"
               id="newPassword"

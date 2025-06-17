@@ -37,22 +37,24 @@ export const signUp = async (req, res) => {
       password: hashed,
       isVerified: false,
     });
-    try {
-      await Employee.create({
-        name,
-        email,
-        position: "not assigned yet",
-        department: "not assigned yet",
-        salary: 0,
-      });
-    } catch (empError) {
+
+    // Create employee record in background
+    Employee.create({
+      name,
+      email,
+      position: "not assigned yet",
+      department: "not assigned yet",
+      salary: 0,
+    }).catch((empError) => {
       console.error("Error creating employee record:", empError);
-    }
+    });
+
     const token = genToken(user.id, res);
 
-    try {
-      await sendOTP(email);
-    } catch (otpError) {}
+    // Send OTP in the background without awaiting
+    sendOTP(email).catch((otpError) => {
+      console.error("Error sending OTP during signup:", otpError);
+    });
 
     res.status(201).json({
       success: true,

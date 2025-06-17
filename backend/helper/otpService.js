@@ -12,7 +12,7 @@ const generateOTP = () => {
 const sendOTP = async (email, purpose = "verification") => {
   try {
     const otp = generateOTP();
-    const hashedOtp = await bcrypt.hash(otp, 10);
+    const hashedOtp = await bcrypt.hash(otp, 8);
     await OTP.create({
       email,
       otp: hashedOtp,

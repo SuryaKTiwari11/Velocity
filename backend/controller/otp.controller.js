@@ -23,6 +23,7 @@ export const sendVerificationOTP = async (req, res) => {
 
 export const verifyUserOTP = async (req, res) => {
   const { email, otp } = req.body;
+
   if (!email || !otp) {
     return res
       .status(400)
@@ -34,7 +35,6 @@ export const verifyUserOTP = async (req, res) => {
 
   if (result.success) {
     try {
-      // Update user's isVerified status to true
       const user = await User.findOne({ where: { email } });
 
       if (user) {

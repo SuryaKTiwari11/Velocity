@@ -102,26 +102,7 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({
         success: false,
         error: "Reset token and new password are required",
-      }); // Check password length
-    if (newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        error: "Password must be at least 8 characters long",
       });
-    }
-
-    // Check password complexity
-    const hasUppercase = /[A-Z]/.test(newPassword);
-    const hasLowercase = /[a-z]/.test(newPassword);
-    const hasNumber = /[0-9]/.test(newPassword);
-
-    if (!hasUppercase || !hasLowercase || !hasNumber) {
-      return res.status(400).json({
-        success: false,
-        error:
-          "Password must include at least one uppercase letter, one lowercase letter, and one number",
-      });
-    }
 
     let decoded;
     try {
@@ -143,15 +124,6 @@ export const resetPassword = async (req, res) => {
     const user = await User.findOne({ where: { email: decoded.email } });
     if (!user)
       return res.status(404).json({ success: false, error: "User not found" });
-
-    // Check if the new password is the same as the old password
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
-    if (isSamePassword) {
-      return res.status(400).json({
-        success: false,
-        error: "New password cannot be the same as your current password",
-      });
-    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
