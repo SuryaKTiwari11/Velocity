@@ -1,68 +1,61 @@
 import { sendOTP, verifyOTP, hasVerifiedOTP } from "../helper/otpService.js";
 import { User } from "../model/model.js";
+
 export const sendVerificationOTP = async (req, res) => {
   const { email } = req.body;
   if (!email) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email is required" });
+    return res.status(400).json({ success: false, msg: "Need email" });
   }
 
-  const result = await sendOTP(email);
+  const r = await sendOTP(email);
 
-  if (result.success) {
+  if (r.success) {
     return res.status(200).json({
       success: true,
-      message: result.message,
-      previewUrl: result.previewUrl, //!NOT FOR PRODUCTION
+      msg: r.message,
+      previewUrl: r.previewUrl,
     });
   } else {
-    return res.status(500).json({ success: false, message: result.message });
+    return res.status(500).json({ success: false, msg: r.message });
   }
 };
 
 export const verifyUserOTP = async (req, res) => {
   const { email, otp } = req.body;
-
   if (!email || !otp) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email and OTP are required" });
+    return res.status(400).json({ success: false, msg: "Need email and OTP" });
   }
 
-  // Verify OTP
-  const result = await verifyOTP(email, otp);
+  const rslt = await verifyOTP(email, otp);
 
-  if (result.success) {
+  if (rslt.success) {
     try {
-      const user = await User.findOne({ where: { email } });
+      const usr = await User.findOne({ where: { email } });
 
-      if (user) {
-        await user.update({ isVerified: true });
-        console.log(`User ${email} marked as verified after OTP verification`);
+      if (usr) {
+        await usr.update({ isVerified: true });
+        console.log(`User ${email} verifyed`);
       } else {
-        console.log(
-          `Warning: Verified OTP for email ${email}, but user not found`
-        );
+        console.log(`Verifyed OTP but user not found`);
       }
 
       return res.status(200).json({
         success: true,
-        message: result.message,
+        msg: rslt.message,
         verified: true,
       });
-    } catch (error) {
-      console.error("Error updating user verification status:", error);
+    } catch (err) {
+      console.error("Error updating user:", err);
       return res.status(500).json({
         success: false,
-        message: "OTP verified but failed to update user status",
-        error: error.message,
+        msg: "OTP verifyed but cant update user",
+        err: err.message,
       });
     }
   } else {
     return res.status(400).json({
       success: false,
-      message: result.message,
+      msg: rslt.message,
       verified: false,
     });
   }
@@ -72,26 +65,22 @@ export const checkOtpStatus = async (req, res) => {
   const { email } = req.query;
 
   if (!email) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email parameter is required" });
+    return res.status(400).json({ success: false, msg: "Need email" });
   }
 
   try {
-    const verified = await hasVerifiedOTP(email);
+    const verfyd = await hasVerifiedOTP(email);
 
     return res.status(200).json({
       success: true,
-      verified,
-      message: verified
-        ? "Email has been verified"
-        : "Email has not been verified",
+      verified: verfyd,
+      msg: verfyd ? "Email verifyed" : "Email not verifyed",
     });
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({
       success: false,
-      message: "Error checking verification status",
-      error: error.message,
+      msg: "Error checking",
+      err: err.message,
     });
   }
 };

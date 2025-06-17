@@ -7,16 +7,11 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();  
   
-  useEffect(() => {
-    const verifyAuth = async () => {
-      console.log("Checking auth status and loading profile data...");
+  useEffect(() => {    const verifyAuth = async () => {
       const isAuthed = await checkAuth();
       
       if (!isAuthed) {
-        console.log("Authentication check failed, redirecting to login");
         navigate('/login');
-      } else {
-        console.log("Authentication confirmed, user data loaded");
       }
       setLoading(false);
     };
@@ -31,14 +26,11 @@ const ProfilePage = () => {
       </div>
     );
   }
-  
-  if (!isAuthenticated || !user) {
-    // If not authenticated after loading is complete
+    if (!isAuthenticated || !user) {
     navigate('/login');
     return null;
   }
 
-  // Extract employee data from user object
   const employeeInfo = user.employeeInfo || {
     id: user.id,
     position: 'Not specified',

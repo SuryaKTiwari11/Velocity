@@ -1,3 +1,5 @@
+import { configDotenv } from "dotenv";
+configDotenv();
 export const authSuccess = (req, res) => {
   try {
     const user = req.user;
@@ -5,7 +7,7 @@ export const authSuccess = (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Authentication failed",
+        message: "authentication failed",
       });
     }
 
@@ -34,7 +36,7 @@ export const handleCallback = (req, res) => {
     if (!user) {
       return res.redirect(
         `${
-          process.env.FRONTEND_URL || "http://localhost:5173"
+          process.env.FRONTEND_URL 
         }/login?error=failed`
       );
     }
@@ -43,13 +45,13 @@ export const handleCallback = (req, res) => {
 
     return res.redirect(
       `${
-        process.env.FRONTEND_URL || "http://localhost:5173"
+        process.env.FRONTEND_URL 
       }/login/success?token=${encodeURIComponent(token)}`
     );
   } catch (error) {
     return res.redirect(
       `${
-        process.env.FRONTEND_URL || "http://localhost:5173"
+        process.env.FRONTEND_URL 
       }/login?error=server`
     );
   }

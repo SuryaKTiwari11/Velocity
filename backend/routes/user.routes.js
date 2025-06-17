@@ -4,10 +4,7 @@ import { authSuccess, handleCallback } from "../controller/ssoAuth.controller.js
 import { forgotPassword, verifyResetOTP, resetPassword } from "../controller/password.controller.js";
 import { protectedRoute } from "../middleware/auth.middleware.js";
 import passport from "../configuration/passport.js";
-
 const router = express.Router();
-
-
 router.post("/signup", signUp);
 router.post("/login", login);
 router.post("/logout", logout);

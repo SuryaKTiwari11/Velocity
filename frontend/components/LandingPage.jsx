@@ -5,8 +5,7 @@ const LandingPage = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-6 bg-black min-h-screen text-center">
       <h1 className="text-white text-4xl font-bold">Welcome to Employee Management System</h1>
-      <p className="text-gray-400">login, signup, or verify your email</p>
-      <div className="flex flex-wrap gap-4 mt-4 justify-center">
+        <div className="flex flex-wrap gap-4 mt-4 justify-center">
         <Link to="/login">
           <button className="bg-purple-600 text-white px-6 py-2 text-lg">
             Login

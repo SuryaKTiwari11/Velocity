@@ -17,7 +17,6 @@ import NotFound from "../components/NothingHere";
 const App = () => {
   const { checkAuth } = useAuthStore();
 
-  // Check authentication status when app loads
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);

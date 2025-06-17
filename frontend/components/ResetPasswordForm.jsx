@@ -48,35 +48,26 @@ const ResetPasswordForm = () => {
       if (response.data.success) {
         setIsSuccess(true);
         setMessage("Password reset successfully! Redirecting to login...");
-        
-        // Clear localStorage
-        localStorage.removeItem("resetEmail");
+          localStorage.removeItem("resetEmail");
         localStorage.removeItem("resetToken");
         
-        // Add timeout to show success message before redirecting
         setTimeout(() => {
           navigate("/login");
+        }, 1000);      } else {
+        throw new Error("Password reset failed");
+      }} catch (error) {      setIsSuccess(false);      // Check for specific error cases through simple string checks
+      const errorData = error.response && error.response.data && error.response.data.error;
+      
+      if (errorData && errorData.includes("same as your current password")) {
+        setMessage("You cannot use your current password as your new password. Please choose a different password.");
+      } else if (errorData && (errorData.includes("token") && (errorData.includes("invalid") || errorData.includes("expired")))) {
+        setMessage("Password reset token is invalid or expired");
+        setTimeout(() => {
+          localStorage.removeItem("resetToken");
+          navigate("/forgot-password");
         }, 1000);
       } else {
-        throw new Error(response.data.error || "Password reset failed");
-      }
-    } catch (error) {
-      setIsSuccess(false);
-      const errorMsg = error.response?.data?.error || error.message || "Password reset failed. Please try again.";
-      
-      // Handle specific error for same password
-      if (errorMsg.includes("same as your current password")) {
-        setMessage("You cannot use your current password as your new password. Please choose a different password.");
-      } else {
-        setMessage(`Error: ${errorMsg}`);
-        
-        // If token is invalid, redirect to forgot password
-        if (errorMsg.includes("token") && (errorMsg.includes("invalid") || errorMsg.includes("expired"))) {
-          setTimeout(() => {
-            localStorage.removeItem("resetToken");
-            navigate("/forgot-password");
-          }, 1000);
-        }
+        setMessage("Password reset failed. Please try again.");
       }
     } finally {
       setIsLoading(false);

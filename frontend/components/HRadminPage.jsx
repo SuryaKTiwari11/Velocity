@@ -7,11 +7,9 @@ const HRadminPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { isAuthenticated, isAdmin, user } = useAuthStore();
+  const { isAuthenticated, isAdmin } = useAuthStore();
   const navigate = useNavigate();
-
   useEffect(() => {
-    // Check if user is authenticated and is an admin
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -22,7 +20,6 @@ const HRadminPage = () => {
       return;
     }
     
-    // Fetch employees for admin
     fetchEmployees();
   }, [isAuthenticated, isAdmin, navigate]);
   
@@ -30,16 +27,12 @@ const HRadminPage = () => {
     try {
       const response = await employeeApi.AllEmp();
       setEmployees(response.data.data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch employees:", error);
+      setLoading(false);    } catch {
       setError("Failed to fetch employees. Please try again later.");
       setLoading(false);
     }
   };
-  
-  const handleDelete = async (id) => {
-    // Only admin users can delete employees
+    const handleDelete = async (id) => {
     if (!isAdmin) {
       setError("Only administrators can delete employee records.");
       return;
@@ -47,10 +40,7 @@ const HRadminPage = () => {
     
     try {
       await employeeApi.deleteEMP(id);
-      // Update the employees list
-      setEmployees(employees.filter((emp) => emp.id !== id));
-    } catch (error) {
-      console.log(error);
+      setEmployees(employees.filter((emp) => emp.id !== id));    } catch {
       setError("Failed to delete employee. Please try again.");
     }
   };

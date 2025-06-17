@@ -24,18 +24,14 @@ const ForgotPasswordForm = () => {
     try {
       const response = await authApi.forgotPassword(email);
       
-      if (response.data.success) {
-        setIsSuccess(true);
-        setMessage(response.data.message || "Reset code sent successfully to your email");
+      if (response.data.success) {        setIsSuccess(true);
+        setMessage("Reset code sent successfully to your email");
         localStorage.setItem("resetEmail", email);
-        
-        // Store and set preview URL if available
-        if (response.data.previewUrl) {
+          if (response.data.previewUrl) {
           setPreviewUrl(response.data.previewUrl);
           localStorage.setItem("emailPreviewUrl", response.data.previewUrl);
         }
         
-        // Add timeout to show success message before redirecting
         setTimeout(() => {
           navigate("/verify-otp", { 
             state: { 
@@ -47,8 +43,7 @@ const ForgotPasswordForm = () => {
         }, 1000);
       } else {
         throw new Error("Failed to send reset code");
-      }
-    } catch (err) {
+      }    } catch {
       setIsSuccess(false);
       setMessage("An error occurred while sending the reset code");
     } finally {

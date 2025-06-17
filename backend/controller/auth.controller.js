@@ -4,14 +4,14 @@ import { genToken } from "../helper/genToken.js";
 import jwt from "jsonwebtoken";
 import { sendOTP } from "../helper/otpService.js";
 
-const userRes = (user) => ({
-  id: user.id,
-  name: user.name,
-  email: user.email,
-  isAdmin: user.isAdmin,
-  isVerified: user.isVerified,
-  profilePicture: user.profilePicture,
-  createdAt: user.createdAt,
+const userRes = (usr) => ({
+  id: usr.id,
+  name: usr.name,
+  email: usr.email,
+  isAdmin: usr.isAdmin,
+  isVerified: usr.isVerified,
+  profilePicture: usr.profilePicture,
+  createdAt: usr.createdAt,
 });
 
 export const signUp = async (req, res) => {
@@ -19,15 +19,13 @@ export const signUp = async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password)
-      return res
-        .status(400)
-        .json({ success: false, error: "missing credentials" });
+      return res.status(400).json({ success: false, err: "missing creds" });
 
-    const isUser = await User.findOne({ where: { email } });
-    if (isUser) {
+    const usr = await User.findOne({ where: { email } });
+    if (usr) {
       return res
         .status(400)
-        .json({ success: false, error: "user with this email already exists" });
+        .json({ success: false, err: "email already exists" });
     }
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
@@ -38,33 +36,31 @@ export const signUp = async (req, res) => {
       isVerified: false,
     });
 
-    // Create employee record in background
     Employee.create({
       name,
       email,
       position: "not assigned yet",
       department: "not assigned yet",
       salary: 0,
-    }).catch((empError) => {
-      console.error("Error creating employee record:", empError);
+    }).catch((err) => {
+      console.error("Emp record err:", err);
     });
 
     const token = genToken(user.id, res);
 
-    // Send OTP in the background without awaiting
-    sendOTP(email).catch((otpError) => {
-      console.error("Error sending OTP during signup:", otpError);
+    sendOTP(email).catch((err) => {
+      console.error("OTP err:", err);
     });
 
     res.status(201).json({
       success: true,
-      message: "user created successfully",
+      msg: "user created",
       user: userRes(user),
       token,
       verificationRequired: true,
     });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    res.status(500).json({ success: false, err: err.message });
   }
 };
 
@@ -75,38 +71,36 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ success: false, error: "Please provide email and password" });
+        .json({ success: false, err: "need email and pass" });
     }
 
-    const user = await User.findOne({ where: { email } });
-    if (!user)
-      return res.status(404).json({ success: false, error: "User not found" });
+    const usr = await User.findOne({ where: { email } });
+    if (!usr)
+      return res.status(404).json({ success: false, err: "no user found" });
 
-    const match = await bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(password, usr.password);
     if (!match)
-      return res
-        .status(401)
-        .json({ success: false, error: "Invalid password" });
+      return res.status(401).json({ success: false, err: "wrong password" });
 
-    if (!user.isVerified && !user.googleId && !user.githubId) {
+    if (!usr.isVerified && !usr.googleId && !usr.githubId) {
       return res.status(403).json({
         success: false,
-        error: "Please verify your email before logging in",
+        err: "plz verify ur email first",
         needsVerification: true,
-        email: user.email,
+        email: usr.email,
       });
     }
 
-    const token = genToken(user.id, res);
+    const token = genToken(usr.id, res);
 
     res.status(200).json({
       success: true,
-      message: "Login successful",
-      user: userRes(user),
+      msg: "login ok",
+      user: userRes(usr),
       token,
     });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    res.status(500).json({ success: false, err: err.message });
   }
 };
 
@@ -121,10 +115,10 @@ export const logout = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Logged out successfully",
+      msg: "logged out",
     });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+  } catch (err) {
+    res.status(500).json({ success: false, err: err.message });
   }
 };
 
@@ -137,35 +131,33 @@ export const getCurrentUser = async (req, res) => {
         : req.headers.authorization);
 
     if (!token)
-      return res
-        .status(401)
-        .json({ success: false, message: "Authentication token not found" });
+      return res.status(401).json({ success: false, msg: "no token found" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.userID);
+    const usr = await User.findByPk(decoded.userID);
 
-    if (!user)
-      return res.status(404).json({ success: false, error: "User not found" });
+    if (!usr)
+      return res.status(404).json({ success: false, err: "no user found" });
 
-    const employee = await Employee.findOne({ where: { email: user.email } });
-    const employeeInfo = employee
+    const emp = await Employee.findOne({ where: { email: usr.email } });
+    const empInfo = emp
       ? {
-          id: employee.id,
-          name: employee.name,
-          email: employee.email,
-          position: employee.position,
-          department: employee.department,
-          salary: employee.salary,
+          id: emp.id,
+          name: emp.name,
+          email: emp.email,
+          position: emp.position,
+          department: emp.department,
+          salary: emp.salary,
         }
       : null;
 
     return res.status(200).json({
       success: true,
-      user: userRes(user),
-      employeeInfo,
+      user: userRes(usr),
+      employeeInfo: empInfo,
     });
-  } catch (error) {
-    console.error("Error in getCurrentUser:", error);
-    return res.status(401).json({ success: false, error: "Invalid token" });
+  } catch (err) {
+    console.error("getCurrentUser err:", err);
+    return res.status(401).json({ success: false, err: "bad token" });
   }
 };

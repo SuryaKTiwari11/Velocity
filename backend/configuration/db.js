@@ -13,7 +13,7 @@ const sequelize = new Sequelize(
     logging: false,
     pool: {
       max: 5,
-      min: 0,
+      min: 0, 
       acquire: 30000,
       idle: 10000,
     },
@@ -62,7 +62,7 @@ export const createDB = async () => {
 export const initializeDatabase = async (models, force = false) => {
   try {
     await sequelize.sync({ force });
-    console.log(" Database synchronized");
+    console.log(" Database syncronization");
     return true;
   } catch (error) {
     console.error(" syncronization error:", error);

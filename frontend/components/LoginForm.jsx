@@ -34,9 +34,8 @@ const LoginForm = () => {
           if (result.success) {
             setTimeout(() => {
               navigate(useAuthStore.getState().isAdmin ? "/hradmin" : "/profile");
-            }, 1000);
-          } else {
-            setError(result.error || "Authentication failed");
+            }, 1000);          } else {
+            setError("Authentication failed");
           }
         })
         .catch(() => setError("Failed to complete authentication."));
@@ -53,24 +52,9 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-
-    if (!formData.email || !formData.password) {
+    setError("");  
+      if (!formData.email || !formData.password) {
       setError("Please provide both email and password");
-      return;
-    }
-
-    // Hardcoded admin shortcut
-    if (
-      formData.email === "admin@example.com" &&
-      formData.password === "admin123"
-    ) {
-      useAuthStore.setState({
-        user: { id: "admin-special", name: "Admin User", email: "admin@example.com" },
-        isAuthenticated: true,
-        isAdmin: true,
-      });
-      navigate("/hradmin");
       return;
     }
 
@@ -95,9 +79,8 @@ const LoginForm = () => {
           setError("Failed to send code, try entering an existing one.");
         } finally {
           setIsLoading(false);
-        }
-      } else {
-        setError(result.error || "Invalid credentials");
+        }      } else {
+        setError("Invalid credentials");
       }
     } catch {
       setError("Login failed, please try again.");
@@ -119,12 +102,11 @@ const LoginForm = () => {
         setNeedsVerification(false);
         setVerificationOTP("");
         const result = await login(formData);
-        if (!result.success) setError("Login failed, try again.");
-      } else {
-        throw new Error(response.data.message || "Invalid code");
+        if (!result.success) setError("Login failed, try again.");      } else {
+        throw new Error("Invalid code");
       }
-    } catch (err) {
-      setError(err.response?.data?.message || err.message);
+    } catch {
+      setError("Verification failed");
     } finally {
       setIsLoading(false);
     }

@@ -3,148 +3,140 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { authApi } from "../src/front2backconnect/api.js";
 
 const VerifyOTPForm = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const nav = useNavigate();
+  const loc = useLocation();
   
   const [otp, setOtp] = useState("");
   const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [success, setSuccess] = useState(false);
   const [mode, setMode] = useState("email");
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [prevUrl, setPrevUrl] = useState("");
   
   useEffect(() => {
-    // Get email from location state, query params, or localStorage
-    if (location.state?.email) {
-      setEmail(location.state.email);
-      if (location.state.mode) setMode(location.state.mode);
+    if (loc.state?.email) {
+      setEmail(loc.state.email);
+      if (loc.state.mode) setMode(loc.state.mode);
       
-      // Check if we have a preview URL in the state
-      if (location.state.previewUrl) {
-        setPreviewUrl(location.state.previewUrl);
+      if (loc.state.previewUrl) {
+        setPrevUrl(loc.state.previewUrl);
       }
     } else {
-      const queryParams = new URLSearchParams(location.search);
-      const queryEmail = queryParams.get("email");
-      const queryMode = queryParams.get("mode");
-      const queryPreviewUrl = queryParams.get("previewUrl");
+      const qParams = new URLSearchParams(loc.search);
+      const qEmail = qParams.get("email");
+      const qMode = qParams.get("mode");
+      const qPrevUrl = qParams.get("previewUrl");
       
-      if (queryEmail) {
-        setEmail(queryEmail);
-        if (queryMode) setMode(queryMode);
-        if (queryPreviewUrl) setPreviewUrl(queryPreviewUrl);
+      if (qEmail) {
+        setEmail(qEmail);
+        if (qMode) setMode(qMode);
+        if (qPrevUrl) setPrevUrl(qPrevUrl);
       } else {
-        const resetEmail = localStorage.getItem("resetEmail");
-        const verifyEmail = localStorage.getItem("verifyEmail");
-        const storedPreviewUrl = localStorage.getItem("emailPreviewUrl");
+        const rstEmail = localStorage.getItem("resetEmail");
+        const verifyEm = localStorage.getItem("verifyEmail");
+        const urlPreview = localStorage.getItem("emailPreviewUrl");
         
-        if (storedPreviewUrl) {
-          setPreviewUrl(storedPreviewUrl);
+        if (urlPreview) {
+          setPrevUrl(urlPreview);
         }
         
-        if (verifyEmail) {
-          setEmail(verifyEmail);
+        if (verifyEm) {
+          setEmail(verifyEm);
           setMode("email");
-        } else if (resetEmail) {
-          setEmail(resetEmail);
+        } else if (rstEmail) {
+          setEmail(rstEmail);
           setMode("reset");
         } else {
-          navigate("/forgot-password");
+          nav("/forgot-password");
         }
       }
     }
-  }, [navigate, location]);
+  }, [nav, loc]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!otp) {
-      setMessage("Please enter a valid verification code");
+      setMsg("Plz enter valid code");
       return;
     }
     
-    setIsLoading(true);
-    setMessage("");
+    setLoading(true);
+    setMsg("");
     
     try {
-      let response;
+      let resp;
       
       if (mode === "email") {
-        response = await authApi.verifyOTP(email, otp);
+        resp = await authApi.verifyOTP(email, otp);
         
-        if (response.data.success) {
-          setIsSuccess(true);
-          setMessage("Email verified successfully!");
+        if (resp.data.success) {
+          setSuccess(true);
+          setMsg("Email verifed!");
           localStorage.removeItem("verifyEmail");
           localStorage.removeItem("emailPreviewUrl");
           
-          // Add timeout to show success message before redirecting
           setTimeout(() => {
-            navigate("/login");
+            nav("/login");
           }, 1000);
         }
-      } else {        response = await authApi.verifyResetOTP(email, otp);
+      } else {
+        resp = await authApi.verifyResetOTP(email, otp);
         
-        if (response.data.success) {
-          setIsSuccess(true);
-          setMessage("Code verified successfully!");
-            // Store the reset token and redirect
-          if (response.data.resetToken) {
-            localStorage.setItem("resetToken", response.data.resetToken);
+        if (resp.data.success) {
+          setSuccess(true);
+          setMsg("Code verifed!");
+          if (resp.data.resetToken) {
+            localStorage.setItem("resetToken", resp.data.resetToken);
             localStorage.setItem("resetEmail", email);
             localStorage.removeItem("emailPreviewUrl");
             
             setTimeout(() => {
-              navigate("/reset-password");
+              nav("/reset-password");
             }, 1000);
           } else {
-            setMessage("Error: No reset token received. Please try again.");
-            setIsSuccess(false);
+            setMsg("Error: No token. Try again.");
+            setSuccess(false);
           }
         }
-      }    } catch (err) {
-      setIsSuccess(false);
-      setMessage(err.response?.data?.message || "Invalid or expired verification code");
+      }
+    } catch {  
+          setSuccess(false);
+      setMsg("Invalid code");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const resendCode = async () => {
     try {
-      setIsLoading(true);
-      setMessage("Sending new verification code...");
-      const response = await authApi.resendOTP(email);
+      setLoading(true);
+      setMsg("Sending code...");
+      const resp = await authApi.resendOTP(email);
       
-      if (response.data.success) {
-        setIsSuccess(true);
-        setMessage("New verification code sent successfully!");
+      if (resp.data.success) {
+        setSuccess(true);
+        setMsg("New code sent!");
         
-        // Store the preview URL if available
-        if (response.data.previewUrl) {
-          setPreviewUrl(response.data.previewUrl);
-          localStorage.setItem("emailPreviewUrl", response.data.previewUrl);
-          
-          // Open the preview URL in a new tab
-          window.open(response.data.previewUrl, "_blank");
-        }
-      } else {
-        throw new Error(response.data.message || "Failed to send verification code");
-      }
-    } catch (error) {
-      setIsSuccess(false);
-      setMessage("Failed to send verification code. Please try again.");
+        if (resp.data.previewUrl) {
+          setPrevUrl(resp.data.previewUrl);
+          localStorage.setItem("emailPreviewUrl", resp.data.previewUrl);
+          window.open(resp.data.previewUrl, "_blank");
+        }      } else {
+        throw new Error("Failed to send code");
+      }    } catch {
+      setSuccess(false);
+      setMsg("Failed to send code. Try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   
-  const openEmailPreview = () => {
-    if (previewUrl) {
-      window.open(previewUrl, "_blank");
+  const openEmail = () => {
+    if (prevUrl) {
+      window.open(prevUrl, "_blank");
     } else {
-      // If no preview URL is available, resend the code
       resendCode();
     }
   };
@@ -156,9 +148,9 @@ const VerifyOTPForm = () => {
           Verification
         </h1>
 
-        {message && (
-          <div className={`p-2 mb-4 rounded ${isSuccess ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-            {message}
+        {msg && (
+          <div className={`p-2 mb-4 rounded ${success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            {msg}
           </div>
         )}
         
@@ -182,7 +174,7 @@ const VerifyOTPForm = () => {
               className="w-full p-2 "
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter the code sent to your email"
+              placeholder="Enter code sent to ur email"
               maxLength={6}
               required
             />
@@ -191,17 +183,17 @@ const VerifyOTPForm = () => {
           <div className="flex justify-center">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className="px-4 py-2 bg-blue-500 text-white "
             >
-              {isLoading ? "Verifying..." : "Verify Code"}
+              {loading ? "Verifying..." : "Verify Code"}
             </button>
           </div>
           
           <div className="mt-4 flex justify-between items-center">
             <button
               type="button"
-              onClick={() => navigate("/login")}
+              onClick={() => nav("/login")}
               className="text-blue-500"
             >
               Back to Login
@@ -210,7 +202,7 @@ const VerifyOTPForm = () => {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={openEmailPreview}
+                onClick={openEmail}
                 className="text-green-600 font-medium"
               >
                 View Email
@@ -220,7 +212,7 @@ const VerifyOTPForm = () => {
                 type="button"
                 onClick={resendCode}
                 className="text-blue-500"
-                disabled={isLoading}
+                disabled={loading}
               >
                 Resend Code
               </button>
