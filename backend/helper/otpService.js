@@ -1,4 +1,4 @@
-import { OTP, User } from "../model/model.js";
+import { OTP } from "../model/model.js";
 import { emailService } from "./email.js";
 import crypto from "crypto";
 import { Op } from "sequelize";
@@ -91,12 +91,11 @@ const verifyOTP = async (email, otp, purpose = "verification") => {
         message: `Wrong OTP. ${5 - otpRec.attempts} tries left.`,
       };
     }
-
     await otpRec.update({ verified: true });
 
     return {
       success: true,
-      message: "OTP verifyed",
+      message: "OTP verified",
     };
   } catch (err) {
     console.error("OTP verify err:", err);
@@ -130,5 +129,4 @@ const hasVerifiedOTP = async (email, purpose = "verification") => {
   }
 };
 
-export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP };
-
+export { generateOTP  , sendOTP, verifyOTP, hasVerifiedOTP };

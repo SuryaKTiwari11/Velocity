@@ -1,4 +1,4 @@
-import { sendOTP, verifyOTP, hasVerifiedOTP } from "../helper/otpService.js";
+import { sendOTP, verifyOTP } from "../helper/otpService.js";
 import { User } from "../model/model.js";
 
 export const sendVerificationOTP = async (req, res) => {
@@ -57,30 +57,6 @@ export const verifyUserOTP = async (req, res) => {
       success: false,
       msg: rslt.message,
       verified: false,
-    });
-  }
-};
-
-export const checkOtpStatus = async (req, res) => {
-  const { email } = req.query;
-
-  if (!email) {
-    return res.status(400).json({ success: false, msg: "Need email" });
-  }
-
-  try {
-    const verfyd = await hasVerifiedOTP(email);
-
-    return res.status(200).json({
-      success: true,
-      verified: verfyd,
-      msg: verfyd ? "Email verifyed" : "Email not verifyed",
-    });
-  } catch (err) {
-    return res.status(500).json({
-      success: false,
-      msg: "Error checking",
-      err: err.message,
     });
   }
 };

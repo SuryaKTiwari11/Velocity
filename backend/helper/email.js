@@ -74,20 +74,4 @@ const emailService = async (
   }
 };
 
-const testEmailService = async (testEmail) => {
-  try {
-    const testOtp = crypto
-      .randomInt(100000, 999999)
-      .toString()
-      .padStart(6, "0");
-    return await otpMail(testEmail, testOtp, "Test User");
-  } catch (err) {
-    console.error("Test email fail:", err);
-    return {
-      success: false,
-      error: err.message,
-    };
-  }
-};
-
-export { emailService, testEmailService, otpMail, otpFormat };
+export { emailService };

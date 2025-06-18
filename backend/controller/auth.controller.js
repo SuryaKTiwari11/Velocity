@@ -122,7 +122,7 @@ export const logout = async (req, res) => {
   }
 };
 
-export const getCurrentUser = async (req, res) => {
+export const curUser = async (req, res) => {
   try {
     let token =
       req.cookies?.jwt ||
@@ -157,7 +157,7 @@ export const getCurrentUser = async (req, res) => {
       employeeInfo: empInfo,
     });
   } catch (err) {
-    console.error("getCurrentUser err:", err);
+    console.error("curUser err:", err);
     return res.status(401).json({ success: false, err: "bad token" });
   }
 };

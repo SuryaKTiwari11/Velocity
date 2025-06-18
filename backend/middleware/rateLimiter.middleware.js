@@ -17,11 +17,11 @@ export const otpLimiter = rateLimit({
 });
 export const passwordResetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 50,
-  message: "Too many password reset requests, please try again later",
+  limit: 50, //!for testing meine -> 50 set kiya hai , but irl it should be <20
+  message: "Too many password reset requests",
 });
 //!BRUTE FORCE ATTACKS NA HO
-export const rateLimiterMiddleware = (req, res, next) => {
+export const rateLimiter = (req, res, next) => {
   if (req.path.includes("/auth/")) {
     authLimiter(req, res, next);
   } else if (req.path.includes("/otp/")) {

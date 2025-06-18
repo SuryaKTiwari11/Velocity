@@ -5,9 +5,10 @@ configDotenv();
 const key = process.env.JWT_SECRET;
 
 const getToken = (req) => {
+  //! either authorization header mei bearer ke baad ya cookie mei
   if (req.headers.authorization) {
     return req.headers.authorization.startsWith("Bearer ")
-      ? req.headers.authorization.substring(7)
+      ? req.headers.authorization.substring(7) 
       : req.headers.authorization;
   }
   return req.cookies?.jwt;
@@ -56,7 +57,7 @@ export const protectedRoute = async (req, res, next) => {
 export const adminRoute = async (req, res, next) => {
   protectedRoute(req, res, () => {
     if (!req.user.isAdmin) {
-      return res.status(403).json({ success: false, message: " admins only" });
+      return res.status(403).json({ success: false, message: " admin only" });
     }
     next();
   });

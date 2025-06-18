@@ -13,14 +13,14 @@ const sequelize = new Sequelize(
     logging: false,
     pool: {
       max: 5,
-      min: 0, 
+      min: 0,
       acquire: 30000,
       idle: 10000,
     },
   }
 );
 
-export const testConnection = async () => {
+export const testConn = async () => {
   try {
     await sequelize.authenticate();
     console.log(" Database connected");
@@ -42,14 +42,14 @@ export const createDB = async () => {
 
   try {
     await client.connect();
-    const checkResult = await client.query(
+    const ans = await client.query(
       `SELECT FROM pg_database WHERE datname = $1;`,
       [process.env.DB_NAME]
     );
 
-    if (checkResult.rowCount === 0) {
+    if (ans.rowCount === 0) {
       await client.query(`CREATE DATABASE "${process.env.DB_NAME}";`);
-      console.log(`Database ${process.env.DB_NAME} created`);
+      console.log("db created");
     }
   } catch (err) {
     console.error("Database creation error:", err);
@@ -59,7 +59,7 @@ export const createDB = async () => {
   }
 };
 
-export const initializeDatabase = async (models, force = false) => {
+export const initDB = async (models, force = false) => {
   try {
     await sequelize.sync({ force });
     console.log(" Database syncronization");

@@ -7,7 +7,7 @@ import SSO from "./SSO";
 const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, handleSSOSuccess } = useAuthStore();
+  const { login, isAuthenticated, ssoSuccess } = useAuthStore();
   const { isAdmin } = useAuthStore();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -29,7 +29,7 @@ const LoginForm = () => {
     if (tokenParam) localStorage.setItem("sso-token", tokenParam);
 
     if (location.pathname === "/login/success") {
-      handleSSOSuccess()
+      ssoSuccess()
         .then((result) => {
           if (result.success) {
             setTimeout(() => {
@@ -44,7 +44,7 @@ const LoginForm = () => {
     if (isAuthenticated) {
       navigate(isAdmin ? "/hradmin" : "/profile");
     }
-  }, [isAuthenticated, isAdmin, navigate, location, handleSSOSuccess]);
+  }, [isAuthenticated, isAdmin, navigate, location, ssoSuccess]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

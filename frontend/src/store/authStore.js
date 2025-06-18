@@ -4,12 +4,13 @@ import { authApi } from "../front2backconnect/api";
 
 const useAuthStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isAuthenticated: false,
       isAdmin: false,
       isLoading: false,
       error: null,
+
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
@@ -30,7 +31,7 @@ const useAuthStore = create(
             isLoading: false,
           });
 
-            if (error.response?.data?.needsVerification) {
+          if (error.response?.data?.needsVerification) {
             const email = error.response?.data?.email || "";
             return {
               success: false,
@@ -38,7 +39,7 @@ const useAuthStore = create(
               needsVerification: true,
               email: email,
             };
-            }
+          }
 
           return {
             success: false,
@@ -46,10 +47,10 @@ const useAuthStore = create(
           };
         }
       },
-      handleSSOSuccess: async () => {
+      ssoSuccess: async () => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authApi.checkAuthSuccess();
+          const response = await authApi.authSuccess();
           const { user } = response.data;
 
           set({
@@ -121,7 +122,7 @@ const useAuthStore = create(
       checkAuth: async () => {
         set({ isLoading: true });
         try {
-          const response = await authApi.getCurrentUser();
+          const response = await authApi.curUser();
           const { user, employeeInfo } = response.data;
           const isAdmin = user && user.isAdmin === true;
           set({
@@ -145,10 +146,6 @@ const useAuthStore = create(
           return false;
         }
       },
-      canEditEmployee: () => {
-        const { isAdmin } = get();
-        return isAdmin;
-      },
     }),
     {
       name: "auth-storage",
@@ -157,6 +154,7 @@ const useAuthStore = create(
         user: state.user,
         isAdmin: state.isAdmin,
         isAuthenticated: state.isAuthenticated,
+        //!this helps store int he localStorage
       }),
     }
   )
