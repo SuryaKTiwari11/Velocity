@@ -22,7 +22,7 @@ const ProfilePage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500">loading...</div>
       </div>
     );
   }
@@ -45,28 +45,28 @@ const ProfilePage = () => {
         Welcome, <span className="font-semibold">{user?.name}</span>
       </p>
       
-      <div className="bg-white border rounded-lg p-6 shadow-sm max-w-lg">
+      <div className="bg-white border  p-6 shadow-sm max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Your Information</h2>
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-500 text-sm">Name</p>
+            <p className="text-black text-sm">Name</p>
             <p className="font-medium">{user.name}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Email</p>
+            <p className="text-black text-sm">Email</p>
             <p className="font-medium">{user.email}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Position</p>
+            <p className="text-black text-sm">Position</p>
             <p className="font-medium">{employeeInfo.position || 'Not set'}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Department</p>
+            <p className="text-black text-sm">Department</p>
             <p className="font-medium">{employeeInfo.department || 'Not set'}</p>
           </div>
           <div className="col-span-2">
-            <p className="text-gray-500 text-sm">Salary</p>
+            <p className="text-black text-sm">Salary</p>
             <p className="font-medium">${typeof employeeInfo.salary === 'number' ? employeeInfo.salary.toLocaleString() : 'Not set'}</p>
           </div>
         </div>

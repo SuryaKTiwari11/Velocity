@@ -73,7 +73,7 @@ export const verifyResetOTP = async (req, res) => {
     if (!res1.success)
       return res.status(400).json({ success: false, err: res1.message });
 
-    const rstTokn = jwt.sign(
+    const resetToken = jwt.sign(
       { email, purpose: "passReset" },
       process.env.JWT_SECRET,
       { expiresIn: "15m" }
@@ -81,8 +81,8 @@ export const verifyResetOTP = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      msg: "OTP verifyed",
-      resetToken: rstTokn,
+      msg: "OTP verified",
+      resetToken: resetToken,
     });
   } catch (err) {
     return res.status(500).json({ success: false, err: err.message });

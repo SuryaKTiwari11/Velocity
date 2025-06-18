@@ -28,9 +28,7 @@ const SignupForm = () => {
     e.preventDefault();
     setStatus({ message: "", isError: false });
     setIsLoading(true);
-    
-    try {
-      // Validate passwords
+      try {
       if (formData.password !== formData.confirmPassword) {
         throw new Error("Passwords do not match");
       }
@@ -39,34 +37,31 @@ const SignupForm = () => {
         name: formData.name,
         email: formData.email,
         password: formData.password
-      };
-      
-      // Sign up user
+      };      
       const result = await signup(userData);
       if (!result.success) {
         throw new Error("Signup failed. Please try again.");
       }
-      
-      // Store email for verification
-      localStorage.setItem("verifyEmail", userData.email);
       setStatus({ message: "Account created. Preparing verification...", isError: false });
       
       const otpResponse = await authApi.resendOTP(userData.email);
       if (!otpResponse.data.success) {
         throw new Error("Account created, but couldn't send verification email. Try again later.");
-      }      const previewUrl = otpResponse.data.previewUrl || null;
-      if (previewUrl) {
-        localStorage.setItem("emailPreviewUrl", previewUrl);
       }
-     
+      
+    
+      const previewUrl = otpResponse.data.previewUrl || null;    
+      const searchParams = new URLSearchParams();
+      searchParams.set("mode", "email");
+      searchParams.set("email", userData.email);
+      if (previewUrl) {
+        searchParams.set("previewUrl", previewUrl);
+      }
+      
+      const searchString = searchParams.toString();
+      
       setTimeout(() => {
-        navigate("/verify-otp", { 
-          state: { 
-            email: userData.email, 
-            mode: "email",
-            previewUrl: previewUrl
-          } 
-        });
+        navigate(`/verify-otp?${searchString}`);
       }, 1000);
       
     } catch (error) {
@@ -145,7 +140,7 @@ const SignupForm = () => {
             <button 
               type="button"
               onClick={() => navigate("/login")} 
-              className="text-blue-500 underline"
+              className="text-red-500 "
             >
               Log In
             </button>

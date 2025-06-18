@@ -94,19 +94,19 @@ const HRadminPage = () => {
                     </h2>
                     <div className="grid grid-cols-2 gap-2 text-white">
                       <p>
-                        <span className="text-gray-400">Email: </span>
+                        <span className="text-black">Email: </span>
                         {employee.email}
                       </p>
                       <p>
-                        <span className="text-gray-400">Department: </span>
+                        <span className="text-black">Department: </span>
                         {employee.department || 'Not set'}
                       </p>
                       <p>
-                        <span className="text-gray-400">Position: </span>
+                        <span className="text-black">Position: </span>
                         {employee.position || 'Not set'}
                       </p>
                       <p>
-                        <span className="text-gray-400">Salary: </span> $
+                        <span className="text-black">Salary: </span> $
                         {employee.salary || '0'}
                       </p>
                     </div>

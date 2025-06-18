@@ -26,7 +26,7 @@ export const authApi = {
   verifyOTP: (email, otp) => api.post("/otp/verify", { email, otp }),
   verifyResetOTP: (email, otp) =>
     api.post("/users/verify-reset-otp", { email, otp }),
-  resetPassword: (resetToken, newPassword) =>
-    api.post("/users/reset-password", { resetToken, newPassword }),
+  resetPassword: (resetToken, newPassword, email) =>
+    api.post("/users/reset-password", { resetToken, newPassword, email }),
   resendOTP: (email) => api.post("/otp/send", { email }),
 };

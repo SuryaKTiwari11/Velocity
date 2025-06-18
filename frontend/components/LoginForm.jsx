@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../src/store/authStore";
 import { authApi } from "../src/front2backconnect/api.js";
 import SSO from "./SSO";
+import OTPVerification from "./OTPVerification";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -18,31 +19,35 @@ const LoginForm = () => {
   const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
+    if (isAuthenticated) {
+      navigate(isAdmin ? "/hradmin" : "/profile");
+      return;
+    }
+
     const searchParams = new URLSearchParams(location.search);
     const errorParam = searchParams.get("error");
     const tokenParam = searchParams.get("token");
-
+    
     if (errorParam) {
       setError(errorParam === "failed" ? "Authentication failed." : "An error occurred.");
     }
-
-    if (tokenParam) localStorage.setItem("sso-token", tokenParam);
-
+    
+    if (tokenParam) {
+      localStorage.setItem("sso-token", tokenParam);
+    }
+    
     if (location.pathname === "/login/success") {
+      setIsLoading(true);
       ssoSuccess()
         .then((result) => {
           if (result.success) {
-            setTimeout(() => {
-              navigate(useAuthStore.getState().isAdmin ? "/hradmin" : "/profile");
-            }, 1000);          } else {
+            navigate(useAuthStore.getState().isAdmin ? "/hradmin" : "/profile");
+          } else {
             setError("Authentication failed");
           }
         })
-        .catch(() => setError("Failed to complete authentication."));
-    }
-
-    if (isAuthenticated) {
-      navigate(isAdmin ? "/hradmin" : "/profile");
+        .catch(() => setError("Failed to complete authentication."))
+        .finally(() => setIsLoading(false));
     }
   }, [isAuthenticated, isAdmin, navigate, location, ssoSuccess]);
 
@@ -86,97 +91,31 @@ const LoginForm = () => {
       setError("Login failed, please try again.");
     }
   };
-
-  const handleVerificationSubmit = async (e) => {
-    e.preventDefault();
-    if (!verificationOTP || verificationOTP.length < 4) {
-      setError("Enter a valid verification code");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await authApi.verifyOTP(formData.email, verificationOTP);
-      if (response.data.success) {
-        alert("Email verified! Please log in again.");
-        setNeedsVerification(false);
-        setVerificationOTP("");
-        const result = await login(formData);
-        if (!result.success) setError("Login failed, try again.");      } else {
-        throw new Error("Invalid code");
-      }
-    } catch {
-      setError("Verification failed");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleVerificationSuccess = async (data) => {
+    alert("Email verified! Please log in again.");
+    setNeedsVerification(false);
+    setVerificationOTP("");
+    
+  
+    const result = await login(formData);
+    if (!result.success) setError("Login failed, try again.");
   };
 
-  const handleResendCode = async () => {
-    setIsLoading(true);
-    try {
-      const response = await authApi.resendOTP(formData.email);
-      if (response.data.success) {
-        setError("New code sent!");
-        if (response.data.previewUrl) {
-          setPreviewUrl(response.data.previewUrl);
-          window.open(response.data.previewUrl, "_blank");
-        }
-      }
-    } catch {
-      setError("Failed to resend code.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleVerificationCancel = () => {
+    setNeedsVerification(false);
+    setVerificationOTP("");
   };
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center">
-      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">
-        {needsVerification ? (
-          <>
-            <h1 className="text-2xl font-bold mb-4">Verify Your Email</h1>
-            {error && <div className="bg-red-100 text-red-700 p-2 mb-4">{error}</div>}
-            {previewUrl && (
-              <div className="mb-4 p-3 bg-blue-100 text-blue-700 ">
-                <p className="mb-2 font-semibold">Debug Mode:</p>
-                <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                  View Email Preview
-                </a>
-              </div>
-            )}
-
-
-            <p className="mb-4 text-gray-600">Enter the code sent to {formData.email}</p>
-            <form onSubmit={handleVerificationSubmit}>
-              <input
-                type="text"
-                value={verificationOTP}
-                onChange={(e) => setVerificationOTP(e.target.value)}
-                className="border p-2 w-full mb-4"
-                placeholder="Verification code"
-                required
-              />
-              <div className="flex gap-2 mb-4">
-                <button className="bg-blue-500 text-white p-2  w-full" disabled={isLoading}>
-                  {isLoading ? "Verifying..." : "Verify Email"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  className="bg-gray-200 text-gray-800 p-2  w-full"
-                  disabled={isLoading}
-                >
-                  Resend Code
-                </button>
-              </div>
-              <div className="text-center">
-                <button type="button" onClick={() => setNeedsVerification(false)} className="text-blue-500 underline">
-                  Back to Login
-                </button>
-              </div>
-            </form>
-          </>
+      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">        {needsVerification ? (
+          <OTPVerification
+            email={formData.email}
+            mode="email"
+            onSuccess={handleVerificationSuccess}
+            onCancel={handleVerificationCancel}
+            previewUrl={previewUrl}
+          />
         ) : (
           <>
             <h1 className="text-2xl font-bold mb-4">Login</h1>
@@ -209,7 +148,7 @@ const LoginForm = () => {
                   Forgot Password?
                 </button>
               </div>
-              <button className="bg-blue-500 text-white p-2 rounded w-full" disabled={isLoading}>
+              <button className="bg-blue-500 text-white p-2  w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </button>            </form>
 
