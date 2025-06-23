@@ -7,7 +7,8 @@ const api = axios.create({
 });
 
 export const employeeApi = {
-  AllEmp: () => api.get("/employees"),
+  allEMP: (params) => api.get("/employees", { params }),
+  filterOpts: () => api.get("/employees/filter"),
   EmpByID: (id) => api.get(`/employees/${id}`),
   createEMP: (data) => api.post("/employees", data),
   updateEMP: (id, data) => api.put(`/employees/${id}`, data),

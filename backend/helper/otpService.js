@@ -11,6 +11,19 @@ const generateOTP = () => {
 
 const sendOTP = async (email, purpose = "verification") => {
   try {
+    // First, find and invalidate any existing unverified OTPs for this email and purpose
+    await OTP.update(
+      { verified: true }, // Mark as verified to invalidate them
+      {
+        where: {
+          email,
+          purpose,
+          verified: false,
+        },
+      }
+    );
+
+    // Then create a new OTP
     const otp = generateOTP();
     const hashOtp = await bcrypt.hash(otp, 8);
     await OTP.create({
@@ -42,8 +55,34 @@ const sendOTP = async (email, purpose = "verification") => {
   }
 };
 
+const cleanupOldOTPs = async (email = null) => {
+  try {
+    const whereCondition = {
+      [Op.or]: [
+        { expiresAt: { [Op.lt]: new Date() } }, // Expired OTPs
+        {
+          verified: true,
+          createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        }, // Verified OTPs older than 24 hours
+      ],
+    };
+
+    // If email is provided, only cleanup for that email
+    if (email) {
+      whereCondition.email = email;
+    }
+
+    await OTP.destroy({ where: whereCondition });
+  } catch (err) {
+    console.error("Error cleaning up old OTPs:", err);
+  }
+};
+
 const verifyOTP = async (email, otp, purpose = "verification") => {
   try {
+    // Run cleanup before verification to remove old OTPs
+    await cleanupOldOTPs(email);
+
     const otpRec = await OTP.findOne({
       where: {
         email,
@@ -98,7 +137,6 @@ const verifyOTP = async (email, otp, purpose = "verification") => {
       message: "OTP verified",
     };
   } catch (err) {
-    console.error("OTP verify err:", err);
     return {
       success: false,
       message: err.message,
@@ -129,4 +167,4 @@ const hasVerifiedOTP = async (email, purpose = "verification") => {
   }
 };
 
-export { generateOTP  , sendOTP, verifyOTP, hasVerifiedOTP };
+export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP, cleanupOldOTPs };

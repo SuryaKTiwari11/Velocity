@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const LandingPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center gap-6 bg-black min-h-screen text-center">
+    <div className="flex flex-col items-center justify-center gap-6 bg-black min-h-screen text-center navbar-spacing">
       <h1 className="text-white text-4xl font-bold">Welcome to Employee Management System</h1>
         <div className="flex flex-wrap gap-4 mt-4 justify-center">
         <Link to="/login">

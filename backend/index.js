@@ -10,6 +10,9 @@ import cookieParser from "cookie-parser";
 import { User, Employee, OTP } from "./model/model.js";
 import passport from "./configuration/passport.js";
 import { rateLimiter } from "./middleware/rateLimiter.middleware.js";
+import { setupOTPCleanup } from "./controller/otp.controller.js";
+import { setupCleanupScheduler } from "./scheduler/cleanup.js";
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(express.json());
@@ -37,6 +40,8 @@ app.listen(PORT, async () => {
 
   if (dbConnected) {
     await initDB(models, false);
+    // Setup cleanup processes
+    setupCleanupScheduler();
   } else {
     console.error("connection Failed!");
   }

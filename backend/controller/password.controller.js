@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "../model/model.js";
-import { sendOTP, verifyOTP } from "../helper/otpService.js";
+import { sendOTP, verifyOTP, cleanupOldOTPs } from "../helper/otpService.js";
 
 export const sendEmailOTP = async (req, res) => {
   try {
@@ -91,7 +91,7 @@ export const verifyResetOTP = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { resetToken, newPassword } = req.body;
+    const { resetToken, newPassword, email } = req.body;
     if (!resetToken || !newPassword)
       return res.status(400).json({
         success: false,
@@ -129,6 +129,9 @@ export const resetPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(newPassword, salt);
     await usr.update({ password: hashedPass });
+
+    // Clean up any password reset OTPs for this user
+    await cleanupOldOTPs(usr.email);
 
     return res.status(200).json({ success: true, msg: "Password reset done" });
   } catch (err) {

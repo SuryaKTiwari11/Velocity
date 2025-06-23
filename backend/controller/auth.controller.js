@@ -2,7 +2,7 @@ import { User, Employee } from "../model/model.js";
 import bcrypt from "bcryptjs";
 import { genToken } from "../helper/genToken.js";
 import jwt from "jsonwebtoken";
-import { sendOTP } from "../helper/otpService.js";
+import { sendOTP, cleanupOldOTPs } from "../helper/otpService.js";
 
 const userRes = (usr) => ({
   id: usr.id,

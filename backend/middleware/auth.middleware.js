@@ -8,13 +8,14 @@ const getToken = (req) => {
   //! either authorization header mei bearer ke baad ya cookie mei
   if (req.headers.authorization) {
     return req.headers.authorization.startsWith("Bearer ")
-      ? req.headers.authorization.substring(7) 
+      ? req.headers.authorization.substring(7)
       : req.headers.authorization;
   }
   return req.cookies?.jwt;
 };
 
-export const protectedRoute = async (req, res, next) => {
+// Protect routes - user must be authenticated
+export const protect = async (req, res, next) => {
   try {
     const token = getToken(req);
 
@@ -44,21 +45,29 @@ export const protectedRoute = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "authentication error",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "authentication error",
+      error: error.message,
+    });
   }
 };
 
+// Admin only middleware - requires protect middleware first
+export const adminOnly = (req, res, next) => {
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).json({
+      success: false,
+      message: "Admin access required",
+    });
+  }
+  next();
+};
+
+// For backward compatibility
+export const protectedRoute = protect;
 export const adminRoute = async (req, res, next) => {
-  protectedRoute(req, res, () => {
-    if (!req.user.isAdmin) {
-      return res.status(403).json({ success: false, message: " admin only" });
-    }
-    next();
+  protect(req, res, () => {
+    adminOnly(req, res, next);
   });
 };

@@ -17,11 +17,9 @@ const ProfilePage = () => {
     };
     
     verifyAuth();
-  }, [checkAuth, navigate]);
-
-  if (loading) {
+  }, [checkAuth, navigate]);  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen navbar-spacing">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500">loading...</div>
       </div>
     );
@@ -37,9 +35,8 @@ const ProfilePage = () => {
     department: 'Not specified',
     salary: 0
   };
-  
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto navbar-spacing">
       <h1 className="text-3xl font-bold mb-6">My Profile</h1>
       <p className="text-xl mb-6">
         Welcome, <span className="font-semibold">{user?.name}</span>

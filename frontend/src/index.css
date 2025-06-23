@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* Utility class for navbar spacing */
+.navbar-spacing {
+  padding-top: 3.5rem; /* Equivalent to Tailwind's pt-14 */
+}
+
+/* For fixed height navbar */
+.navbar {
+  height: 3.5rem; /* Make sure this matches the padding-top above */
+}

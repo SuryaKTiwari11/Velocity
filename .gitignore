@@ -87,3 +87,6 @@ target/
 vendor/
 bower_components/
 jspm_packages/
+
+# Project specific
+readme
