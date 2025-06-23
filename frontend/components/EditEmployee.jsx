@@ -32,10 +32,8 @@ const EditEmployee = () => {
           return;
         }
         setFormData(employeeData);
-        setLoading(false);
-      } catch (error) {
+        setLoading(false);      } catch {
         setError( "Failed to fetch employee data");
-        console.error(error);
         navigate('/hradmin');
       }
     };
@@ -57,10 +55,8 @@ const EditEmployee = () => {
         department: formData.department || null
       };
       await employeeApi.updateEMP(id, data);
-      navigate("/hradmin");
-    } catch (error) {
+      navigate("/hradmin");    } catch (error) {
       setError( "Failed to update employee");
-      console.error(error);
     }
   };
 

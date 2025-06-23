@@ -7,74 +7,63 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();  
   
-  useEffect(() => {
-    const verifyAuth = async () => {
-      console.log("Checking auth status and loading profile data...");
+  useEffect(() => {    const verifyAuth = async () => {
       const isAuthed = await checkAuth();
       
       if (!isAuthed) {
-        console.log("Authentication check failed, redirecting to login");
         navigate('/login');
-      } else {
-        console.log("Authentication confirmed, user data loaded");
       }
       setLoading(false);
     };
     
     verifyAuth();
-  }, [checkAuth, navigate]);
-
-  if (loading) {
+  }, [checkAuth, navigate]);  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen navbar-spacing">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500">loading...</div>
       </div>
     );
   }
-  
-  if (!isAuthenticated || !user) {
-    // If not authenticated after loading is complete
+    if (!isAuthenticated || !user) {
     navigate('/login');
     return null;
   }
 
-  // Extract employee data from user object
   const employeeInfo = user.employeeInfo || {
     id: user.id,
     position: 'Not specified',
     department: 'Not specified',
     salary: 0
   };
-  
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto navbar-spacing">
       <h1 className="text-3xl font-bold mb-6">My Profile</h1>
       <p className="text-xl mb-6">
         Welcome, <span className="font-semibold">{user?.name}</span>
       </p>
       
-      <div className="bg-white border rounded-lg p-6 shadow-sm max-w-lg">
+      <div className="bg-white border  p-6 shadow-sm max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">Your Information</h2>
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-500 text-sm">Name</p>
+            <p className="text-black text-sm">Name</p>
             <p className="font-medium">{user.name}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Email</p>
+            <p className="text-black text-sm">Email</p>
             <p className="font-medium">{user.email}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Position</p>
+            <p className="text-black text-sm">Position</p>
             <p className="font-medium">{employeeInfo.position || 'Not set'}</p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Department</p>
+            <p className="text-black text-sm">Department</p>
             <p className="font-medium">{employeeInfo.department || 'Not set'}</p>
           </div>
           <div className="col-span-2">
-            <p className="text-gray-500 text-sm">Salary</p>
+            <p className="text-black text-sm">Salary</p>
             <p className="font-medium">${typeof employeeInfo.salary === 'number' ? employeeInfo.salary.toLocaleString() : 'Not set'}</p>
           </div>
         </div>

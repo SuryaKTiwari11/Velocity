@@ -20,7 +20,7 @@ const createOtpModel = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: () => {
-          return new Date(Date.now() + 10 * 60 * 1000); 
+          return new Date(Date.now() + 10 * 60 * 1000);
         },
       },
       verified: {
@@ -35,7 +35,7 @@ const createOtpModel = (sequelize) => {
       },
       purpose: {
         type: DataTypes.STRING,
-        defaultValue: "verification", 
+        defaultValue: "verification",
         allowNull: false,
       },
     },

@@ -22,33 +22,27 @@ const ForgotPasswordForm = () => {
     setMessage("");
     
     try {
-      const response = await authApi.forgotPassword(email);
-      
-      if (response.data.success) {
+      const response = await authApi.forgotPassword(email);      if (response.data.success) {
         setIsSuccess(true);
-        setMessage(response.data.message || "Reset code sent successfully to your email");
-        localStorage.setItem("resetEmail", email);
+        setMessage("Reset code sent successfully to your email");
         
-        // Store and set preview URL if available
         if (response.data.previewUrl) {
           setPreviewUrl(response.data.previewUrl);
-          localStorage.setItem("emailPreviewUrl", response.data.previewUrl);
+        }
+       
+        const searchParams = new URLSearchParams();
+        searchParams.set("mode", "reset");
+        searchParams.set("email", email);
+        if (response.data.previewUrl) {
+          searchParams.set("previewUrl", response.data.previewUrl);
         }
         
-        // Add timeout to show success message before redirecting
         setTimeout(() => {
-          navigate("/verify-otp", { 
-            state: { 
-              email: email, 
-              mode: "reset",
-              previewUrl: response.data.previewUrl 
-            } 
-          });
+          navigate(`/verify-otp?${searchParams.toString()}`);
         }, 1000);
       } else {
         throw new Error("Failed to send reset code");
-      }
-    } catch (err) {
+      }    } catch {
       setIsSuccess(false);
       setMessage("An error occurred while sending the reset code");
     } finally {

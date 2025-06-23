@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../src/store/authStore";
 import { authApi } from "../src/front2backconnect/api.js";
@@ -14,7 +14,7 @@ const SignupForm = () => {
     password: "",
     confirmPassword: "",
   });
-    const [error, setError] = useState("");
+  const [status, setStatus] = useState({ message: "", isError: false });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -23,82 +23,71 @@ const SignupForm = () => {
       [e.target.name]: e.target.value,
     });
   };
-    const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setStatus({ message: "", isError: false });
     setIsLoading(true);
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
-    
-    // Create user data object without confirmPassword
-    const userData = {
-      name: formData.name,
-      email: formData.email,
-      password: formData.password
-    };
-    
-    try {
-      const result = await signup(userData);
-      
-      if (result.success) {
-        // Store the email for verification
-        localStorage.setItem("verifyEmail", userData.email);
-        
-        // Show success message
-        setError("Account created successfully! Preparing verification...");
-        
-        // Send verification OTP
-        try {
-          const otpResponse = await authApi.resendOTP(userData.email);
-          
-          if (otpResponse.data.success) {
-            let previewUrl = null;
-            
-            // If in development and we have a preview URL for the email
-            if (otpResponse.data.previewUrl) {
-              previewUrl = otpResponse.data.previewUrl;
-              
-              // Store preview URL for later use
-              localStorage.setItem("emailPreviewUrl", previewUrl);
-            }
-            
-            // Add timeout to show success message before redirecting
-            setTimeout(() => {
-              navigate("/verify-otp", { 
-                state: { 
-                  email: userData.email, 
-                  mode: "email",
-                  previewUrl: previewUrl
-                } 
-              });
-            }, 1000);
-          } else {
-            setError("Account created, but couldn't send verification email. Try again later.");
-          }
-        } catch (otpError) {
-          setError("Account created, but couldn't send verification email. Try again later.");
-        }
-      } else {
-        setError(result.error || "Signup failed. Please try again.");
+      try {
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error("Passwords do not match");
       }
-    } catch (err) {
-      setError("An unexpected error occurred during signup");
+      
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      };      
+      const result = await signup(userData);
+      if (!result.success) {
+        throw new Error("Signup failed. Please try again.");
+      }
+      setStatus({ message: "Account created. Preparing verification...", isError: false });
+      
+      const otpResponse = await authApi.resendOTP(userData.email);
+      if (!otpResponse.data.success) {
+        throw new Error("Account created, but couldn't send verification email. Try again later.");
+      }
+      
+    
+      const previewUrl = otpResponse.data.previewUrl || null;    
+      const searchParams = new URLSearchParams();
+      searchParams.set("mode", "email");
+      searchParams.set("email", userData.email);
+      if (previewUrl) {
+        searchParams.set("previewUrl", previewUrl);
+      }
+      
+      const searchString = searchParams.toString();
+      
+      setTimeout(() => {
+        navigate(`/verify-otp?${searchString}`);
+      }, 1000);
+      
+    } catch (error) {
+      setStatus({ message: error.message || "An unexpected error occurred", isError: true });
     } finally {
       setIsLoading(false);
     }
   };
-    return (
+
+  return (
     <div className="bg-black min-h-screen flex items-center justify-center">
-      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full rounded shadow">
+      <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">
         <h1 className="text-2xl font-bold mb-4">Create Account</h1>
         
-        {error && <div className="bg-red-100 text-red-700 p-2 mb-4">{error}</div>}
+        {status.message && (
+          <div 
+            className={`p-2 mb-4 ${
+              status.isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+            }`}
+          >
+            {status.message}
+          </div>
+        )}
         
-        <form onSubmit={handleSubmit}>          <input
+        <form onSubmit={handleSubmit}>
+          <input
             type="text"
             name="name"
             value={formData.name}
@@ -137,9 +126,11 @@ const SignupForm = () => {
             placeholder="Confirm Password"
             required
           />
-            <button className="bg-blue-500 text-white p-2 rounded w-full" disabled={isLoading}>
+          
+          <button className="bg-blue-500 text-white p-2 w-full" disabled={isLoading}>
             {isLoading ? "Signing up..." : "Sign Up"}
-          </button>        </form>
+          </button>
+        </form>
         
         <SSO />
         
@@ -149,7 +140,7 @@ const SignupForm = () => {
             <button 
               type="button"
               onClick={() => navigate("/login")} 
-              className="text-blue-500 underline"
+              className="text-red-500 "
             >
               Log In
             </button>

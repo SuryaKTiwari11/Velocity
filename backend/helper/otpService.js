@@ -1,4 +1,4 @@
-import { OTP, User } from "../model/model.js";
+import { OTP } from "../model/model.js";
 import { emailService } from "./email.js";
 import crypto from "crypto";
 import { Op } from "sequelize";
@@ -11,108 +11,142 @@ const generateOTP = () => {
 
 const sendOTP = async (email, purpose = "verification") => {
   try {
+    // First, find and invalidate any existing unverified OTPs for this email and purpose
+    await OTP.update(
+      { verified: true }, // Mark as verified to invalidate them
+      {
+        where: {
+          email,
+          purpose,
+          verified: false,
+        },
+      }
+    );
+
+    // Then create a new OTP
     const otp = generateOTP();
-    const hashedOtp = await bcrypt.hash(otp, 10);
+    const hashOtp = await bcrypt.hash(otp, 8);
     await OTP.create({
       email,
-      otp: hashedOtp,
+      otp: hashOtp,
       verified: false,
       attempts: 0,
       purpose,
     });
 
-    const emailResult = await emailService(email, otp, "User", purpose);
+    const emailRes = await emailService(email, otp, "User", purpose);
 
-    if (emailResult.success) {
-      console.log(
-        "OTP email sent successfully with preview URL:",
-        emailResult.url
-      );
+    if (emailRes.success) {
+      console.log("OTP email sent:", emailRes.url);
       return {
         success: true,
-        previewUrl: emailResult.url,
-        message: "OTP sent successfully",
+        previewUrl: emailRes.url,
+        message: "OTP sent",
       };
     } else {
-      throw new Error("Failed to send OTP email");
+      throw new Error("Cant send OTP");
     }
-  } catch (error) {
-    console.error("Error sending OTP:", error);
+  } catch (err) {
+    console.error("Error sending OTP:", err);
     return {
       success: false,
-      message: error.message,
+      message: err.message,
     };
+  }
+};
+
+const cleanupOldOTPs = async (email = null) => {
+  try {
+    const whereCondition = {
+      [Op.or]: [
+        { expiresAt: { [Op.lt]: new Date() } }, // Expired OTPs
+        {
+          verified: true,
+          createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        }, // Verified OTPs older than 24 hours
+      ],
+    };
+
+    // If email is provided, only cleanup for that email
+    if (email) {
+      whereCondition.email = email;
+    }
+
+    await OTP.destroy({ where: whereCondition });
+  } catch (err) {
+    console.error("Error cleaning up old OTPs:", err);
   }
 };
 
 const verifyOTP = async (email, otp, purpose = "verification") => {
   try {
-    const otpRecord = await OTP.findOne({
+    // Run cleanup before verification to remove old OTPs
+    await cleanupOldOTPs(email);
+
+    const otpRec = await OTP.findOne({
       where: {
         email,
         verified: false,
         purpose,
       },
-      order: [["createdAt", "DESC"]], //!SABSE LATEST OTP
+      order: [["createdAt", "DESC"]],
     });
 
-    if (!otpRecord)
+    if (!otpRec)
       return {
         success: false,
-        message: "No OTP found.",
+        message: "No OTP found",
       };
 
-    if (otpRecord.verified) {
+    if (otpRec.verified) {
       return {
         success: false,
-        message: "OTP has already been used",
-      };
-    }
-
-    if (otpRecord.attempts >= 5) {
-      return {
-        success: false,
-        message: "max attempts reached",
+        message: "OTP already used",
       };
     }
 
-    if (new Date() > new Date(otpRecord.expiresAt)) {
-      await otpRecord.update({ attempts: otpRecord.attempts + 1 });
+    if (otpRec.attempts >= 5) {
       return {
         success: false,
-        message: "OTP has expired",
+        message: "max tries reached",
       };
     }
 
-    const isValidOtp = await bcrypt.compare(otp, otpRecord.otp);
-
-    if (!isValidOtp) {
-      await otpRecord.update({ attempts: otpRecord.attempts + 1 });
-
+    if (new Date() > new Date(otpRec.expiresAt)) {
+      await otpRec.update({ attempts: otpRec.attempts + 1 });
       return {
         success: false,
-        message: `Invalid OTP. ${5 - otpRecord.attempts} attempts remaining.`,
+        message: "OTP expired",
       };
     }
 
-    await otpRecord.update({ verified: true });
+    const validOtp = await bcrypt.compare(otp, otpRec.otp);
+
+    if (!validOtp) {
+      await otpRec.update({ attempts: otpRec.attempts + 1 });
+
+      return {
+        success: false,
+        message: `Wrong OTP. ${5 - otpRec.attempts} tries left.`,
+      };
+    }
+    await otpRec.update({ verified: true });
 
     return {
       success: true,
-      message: "OTP verified successfully",
+      message: "OTP verified",
     };
-  } catch (error) {
-    console.error("Error verifying OTP:", error);
+  } catch (err) {
     return {
       success: false,
-      message: error.message,
+      message: err.message,
     };
   }
 };
 
 const hasVerifiedOTP = async (email, purpose = "verification") => {
   try {
-    const verifiedOtp = await OTP.findOne({
+    const vrfyOtp = await OTP.findOne({
       where: {
         email,
         verified: true,
@@ -121,17 +155,16 @@ const hasVerifiedOTP = async (email, purpose = "verification") => {
           [Op.gt]: new Date(),
         },
       },
+      //!RECENTLY MEI KOI VERIFIED OTP HO TOH HI AGYE BADHNA HAI , TIME CONSTRAINT WALA FACTOR IS THERE
+      //! this is used in verified OTP
       order: [["createdAt", "DESC"]],
     });
 
-    return !!verifiedOtp;
-  } catch (error) {
-    console.error("Error checking OTP verification status:", error);
+    return !!vrfyOtp;
+  } catch (err) {
+    console.error("OTP check err:", err);
     return false;
   }
 };
 
-export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP };
-
-//!RECENTLY MEI KOI VERIFIED OTP HO TOH HI AGYE BADHNA HAI , TIME CONSTRAINT WALA FACTOR IS THERE
-//! this is used in verified OTP
+export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP, cleanupOldOTPs };

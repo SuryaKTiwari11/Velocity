@@ -9,9 +9,8 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
-
   return (
-    <nav className="bg-blue-500 p-2">
+    <nav className="bg-blue-500 p-2 fixed top-0 left-0 right-0 z-50 navbar">
       <div className="flex justify-between items-center">
         <Link to="/">
           <h1 className="text-white font-bold">EMP Management</h1>

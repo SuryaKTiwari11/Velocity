@@ -7,14 +7,14 @@ const SSO = () => (
     <div className="flex justify-center space-x-4">
       <button
         type="button"
-        onClick={() => window.location.href = authApi.getGoogleAuthUrl()}
+        onClick={() => window.location.href = authApi.googleUrl()}
         className="px-4 py-2 border "
       >
         Google
       </button>
       <button
         type="button"
-        onClick={() => window.location.href = authApi.getGithubAuthUrl()}
+        onClick={() => window.location.href = authApi.githubUrl()}
         className="px-4 py-2 border  "
       >
         GitHub

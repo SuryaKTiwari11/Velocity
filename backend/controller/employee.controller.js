@@ -1,4 +1,5 @@
-import { Employee} from "../model/model.js";
+import { Employee } from "../model/model.js";
+import { Op } from "sequelize";
 export const createEMP = async (req, res) => {
   try {
     const { name, department, position, email, salary } = req.body;
@@ -35,13 +36,45 @@ export const createEMP = async (req, res) => {
 
 export const AllEMP = async (req, res) => {
   try {
-    const employees = await Employee.findAll();
+    const {
+      page = 1,
+      limit = 5,
+      sortBy = "name",
+      order = "asc",
+      name,
+      department,
+      position,
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    //! why are we doing this
+    //! This is done to calculate the starting point for the records to fetch
+    //! For example, if page = 2 and limit = 5, we want to skip the first 5 records
+    //! so we set offset = 5
+
+    const filterBOX = {};
+    if (name) filterBOX.name = { [Op.like]: `%${name}%` };
+    if (department) filterBOX.department = department;
+    if (position) filterBOX.position = position;
+
+    //!https://sequelize.org/docs/v7/querying/operators/
+    const { count, rows: employees } = await Employee.findAndCountAll({
+      where: filterBOX,
+      order: [[sortBy, order.toUpperCase()]], //* SARE SAME SAME HOJAYEGE
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+    });
+
     res.status(200).json({
       success: true,
-      count: employees.length,
+      total: count,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(count / limit),
       data: employees,
     });
   } catch (error) {
+    console.error("Error in AllEMP:", error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -111,6 +144,33 @@ export const deleteEMP = async (req, res) => {
       message: "employee deleted",
     });
   } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const filterOpts = async (req, res) => {
+  try {
+  
+    const employees = await Employee.findAll({
+      attributes : ["department", "position"],
+    });
+    const departments = [
+      ...new Set(employees.map((emp) => emp.department).filter(Boolean)),
+    ];
+    const positions = [
+      ...new Set(employees.map((emp) => emp.position).filter(Boolean)),
+    ];
+
+    res.status(200).json({
+      success: true,
+      departments,
+      positions,
+    });
+  } catch (error) {
+    console.error("Error getting filter options:", error);
     res.status(500).json({
       success: false,
       message: error.message,

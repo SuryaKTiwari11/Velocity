@@ -18,6 +18,10 @@ The Employee Management System (EMS) is a full-stack web application built with 
 - 👤 User profile management
 
 ### 👨‍💼 Employee Management
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - ➕ Add new employees with detailed information
 - 📝 Edit existing employee records
 - 🗑️ Delete employee records
@@ -25,11 +29,19 @@ The Employee Management System (EMS) is a full-stack web application built with 
 - 🔍 Search and filter employee data
 
 ### 👩‍💼 Administrative Features
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - 👑 Role-based access control (Admin vs Regular users)
 - 📊 Admin dashboard for data overview
 - 🛠️ Advanced employee management tools
 
 ### 🔒 Security Features
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - 🛡️ JWT-based authentication
 - 🔒 Password hashing with bcrypt
 - ⏱️ Rate limiting to prevent brute force attacks
@@ -39,6 +51,10 @@ The Employee Management System (EMS) is a full-stack web application built with 
 ## 🛠️ Technologies Used
 
 ### 🖥️ Frontend
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - ⚛️ React 19.x - Latest React with hooks and functional components
 - 🧭 React Router Dom 7.x - For client-side routing
 - 🎨 TailwindCSS 4.x - For responsive, utility-first styling
@@ -47,6 +63,10 @@ The Employee Management System (EMS) is a full-stack web application built with 
 - 🚀 Vite - Fast, modern frontend build tool
 
 ### ⚙️ Backend
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - 📡 Express.js - Web server framework
 - 🗄️ PostgreSQL - Relational database
 - 🔄 Sequelize - ORM for database operations
@@ -60,6 +80,10 @@ The Employee Management System (EMS) is a full-stack web application built with 
 The application follows a modern, component-based architecture:
 
 ### Backend Structure
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 ```
 backend/
   ├── configuration/ - Database and passport setup
@@ -71,6 +95,10 @@ backend/
 ```
 
 ### Frontend Structure
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 ```
 frontend/
   ├── components/ - React UI components
@@ -88,6 +116,10 @@ frontend/
 The application provides multiple authentication methods:
 
 1. **Traditional Authentication**:
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
    - Register with email/password
    - Verify email via OTP
    - Login with credentials
@@ -119,12 +151,17 @@ The application provides multiple authentication methods:
 ### Installation
 
 1. **Clone the repository**
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
    ```bash
    git clone https://github.com/yourusername/ems.git
    cd ems
    ```
 
 2. **Install dependencies**
+<<<<<<< HEAD
    ```bash
    # Install root dependencies
    npm install
@@ -133,6 +170,17 @@ The application provides multiple authentication methods:
    cd backend
    npm install
    
+=======
+
+   ```bash
+   # Install root dependencies
+   npm install
+
+   # Install backend dependencies
+   cd backend
+   npm install
+
+>>>>>>> background-jobs-implementation
    # Install frontend dependencies
    cd ../frontend
    npm install
@@ -140,6 +188,10 @@ The application provides multiple authentication methods:
 
 3. **Configure environment variables**
    Create a `.env` file in the backend directory with the following variables:
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
    ```env
    PORT=3000
    DB_HOST=localhost
@@ -147,23 +199,39 @@ The application provides multiple authentication methods:
    DB_PASS=yourpassword
    DB_NAME=ems_db
    JWT_SECRET=your_jwt_secret
+<<<<<<< HEAD
    
+=======
+
+>>>>>>> background-jobs-implementation
    # Email configuration
    EMAIL_SERVICE=gmail
    EMAIL_USER=your-email@gmail.com
    EMAIL_PASS=your-app-password
+<<<<<<< HEAD
    
+=======
+
+>>>>>>> background-jobs-implementation
    # OAuth credentials
    GOOGLE_CLIENT_ID=your_google_client_id
    GOOGLE_CLIENT_SECRET=your_google_client_secret
    GOOGLE_CALLBACK_URL=http://localhost:3000/api/users/auth/google/callback
+<<<<<<< HEAD
    
+=======
+
+>>>>>>> background-jobs-implementation
    GITHUB_CLIENT_ID=your_github_client_id
    GITHUB_CLIENT_SECRET=your_github_client_secret
    GITHUB_CALLBACK_URL=http://localhost:3000/api/users/auth/github/callback
    ```
 
 4. **Set up the database**
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
    ```bash
    cd backend
    npm run db:create
@@ -171,6 +239,10 @@ The application provides multiple authentication methods:
    ```
 
 5. **Run the application**
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
    ```bash
    # From the root directory
    npm run dev
@@ -198,6 +270,10 @@ node admin-endpoints-test.js
 ## 🛣️ API Endpoints
 
 ### Employee Endpoints
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - `GET /api/employees` - Get all employees
 - `GET /api/employees/:id` - Get employee by ID
 - `POST /api/employees` - Create new employee
@@ -205,6 +281,10 @@ node admin-endpoints-test.js
 - `DELETE /api/employees/:id` - Delete employee
 
 ### Authentication Endpoints
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - `POST /api/users/signup` - Register new user
 - `POST /api/users/login` - Login user
 - `POST /api/users/logout` - Logout user
@@ -214,10 +294,18 @@ node admin-endpoints-test.js
 - `POST /api/users/reset-password` - Reset password
 
 ### OTP Endpoints
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - `POST /api/otp/send` - Send OTP
 - `POST /api/otp/verify` - Verify OTP
 
 ### OAuth Endpoints
+<<<<<<< HEAD
+=======
+
+>>>>>>> background-jobs-implementation
 - `GET /api/users/auth/google` - Google authentication
 - `GET /api/users/auth/github` - GitHub authentication
 - `GET /api/users/auth/success` - OAuth success callback
@@ -225,12 +313,24 @@ node admin-endpoints-test.js
 ## 📱 Screenshots
 
 ### Login Page
+<<<<<<< HEAD
 ![Login Page](https://via.placeholder.com/800x450/4F46E5/FFFFFF?text=Login+Page)
 
 ### Admin Dashboard
 ![Admin Dashboard](https://via.placeholder.com/800x450/4F46E5/FFFFFF?text=Admin+Dashboard)
 
 ### Employee Management
+=======
+
+![Login Page](https://via.placeholder.com/800x450/4F46E5/FFFFFF?text=Login+Page)
+
+### Admin Dashboard
+
+![Admin Dashboard](https://via.placeholder.com/800x450/4F46E5/FFFFFF?text=Admin+Dashboard)
+
+### Employee Management
+
+>>>>>>> background-jobs-implementation
 ![Employee Management](https://via.placeholder.com/800x450/4F46E5/FFFFFF?text=Employee+Management)
 
 ## 🔄 Future Enhancements

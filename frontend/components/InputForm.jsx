@@ -14,8 +14,6 @@ const InputForm = () => {
     salary: "",
   });
   const [error, setError] = useState(null);
-
-  // Check admin authorization
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -38,25 +36,19 @@ const InputForm = () => {
     e.preventDefault();
     setError(null);
     
-    try {
-      const data = {
+    try {      const data = {
         ...formData,
-        // Convert salary to number if provided, otherwise null
         salary: formData.salary ? Number(formData.salary) : null,
-        // Set null for empty strings
         position: formData.position || null,
         department: formData.department || null
       };
         await employeeApi.createEMP(data);
-      navigate("/hradmin");
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to create employee");
-      console.error(error);
+      navigate("/hradmin");    } catch {
+      setError("Failed to create employee");
     }
   };
-
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-md mx-auto navbar-spacing">
       <h1 className="text-2xl font-bold mb-4">Add New Employee</h1>
       
       {error && (
