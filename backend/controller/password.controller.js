@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "../model/model.js";
 import { sendOTP, verifyOTP, cleanupOldOTPs } from "../helper/otpService.js";
+import { addOTP, addReset } from "../queues/email.js";
 
 export const sendEmailOTP = async (req, res) => {
   try {
@@ -10,18 +11,32 @@ export const sendEmailOTP = async (req, res) => {
       return res.status(400).json({ success: false, msg: "Need email" });
 
     const r = await sendOTP(email);
-    if (r.success)
-      return res.status(200).json({
-        success: true,
-        msg: "OTP sent",
-        previewUrl: r.previewUrl,
-      });
-    else
+    if (r.success) {
+      // Get user name for email personalization
+      const user = await User.findOne({ where: { email } });
+      const userName = user ? user.name : "User"; // Add OTP email job to queue
+      const emailJobResult = await addOTP(email, r.otp, userName);
+
+      if (emailJobResult.success) {
+        return res.status(200).json({
+          success: true,
+          msg: "OTP queued for sending",
+          jobId: emailJobResult.jobId,
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          msg: "Failed to queue OTP email",
+          error: emailJobResult.error,
+        });
+      }
+    } else {
       return res.status(500).json({
         success: false,
         msg: "cant send OTP",
         err: r.message,
       });
+    }
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -46,16 +61,33 @@ export const forgotPassword = async (req, res) => {
     }
 
     const res1 = await sendOTP(email, "passReset");
-    return res.status(res1.success ? 200 : 500).json({
-      success: res1.success,
-      msg: res1.success ? "Code sent" : "Cant send code",
-      ...(res1.success && { previewUrl: res1.previewUrl }),
-      ...(!res1.success && { err: res1.message }),
-    });
+    if (res1.success) {
+      // Add password reset email job to queue
+      const emailJobResult = await addReset(email, res1.otp, user.name);
+
+      if (emailJobResult.success) {
+        return res.status(200).json({
+          success: true,
+          msg: "Password reset code queued for sending",
+          jobId: emailJobResult.jobId,
+        });
+      } else {
+        return res.status(500).json({
+          success: false,
+          msg: "Failed to queue password reset email",
+          error: emailJobResult.error,
+        });
+      }
+    } else {
+      return res.status(500).json({
+        success: false,
+        msg: res1.message,
+      });
+    }
   } catch (err) {
     return res.status(500).json({
       success: false,
-      msg: "Error sending code",
+      msg: "Forgot password error",
       err: err.message,
     });
   }
