@@ -64,7 +64,7 @@ const ForgotPasswordForm = () => {
         <h1 className="text-2xl font-bold mb-6 text-center">Reset Your Password</h1>
         
         {message && (
-          <div className={`bg-${isSuccess ? 'green' : 'red'}-100 text-${isSuccess ? 'green' : 'red'}-700 p-2 mb-4 rounded`}>
+          <div className={`bg-${isSuccess ? 'green' : 'red'}-100 text-${isSuccess ? 'green' : 'red'}-700 p-2 mb-4  `}>
             {message}
           </div>
         )}
@@ -77,7 +77,7 @@ const ForgotPasswordForm = () => {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border  "
               placeholder="Enter your email address"
               required
             />
@@ -87,14 +87,14 @@ const ForgotPasswordForm = () => {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="px-4 py-2 bg-gray-200 text-black rounded"
+              className="px-4 py-2 bg-gray-200 text-black  "
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
+              className="px-4 py-2 bg-blue-500 text-white  "
             >           
               {isLoading ? "Sending..." : "Send Reset Code"}
             </button>
@@ -103,7 +103,7 @@ const ForgotPasswordForm = () => {
               <button
                 type="button"
                 onClick={openEmailPreview}
-                className="px-4 py-2 bg-green-500 text-white rounded ml-auto"
+                className="px-4 py-2 bg-green-500 text-white   ml-auto"
               >
                 View Email
               </button>

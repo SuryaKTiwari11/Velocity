@@ -63,7 +63,7 @@ useEffect(() => {
           <label className="block text-sm font-medium mb-2">Enter OTP</label>
           <input
             type="text"
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border  "
             placeholder="Enter 6-digit OTP"
             maxLength="6"
           />
@@ -72,13 +72,13 @@ useEffect(() => {
         <div className="flex space-x-4">
           <button
             onClick={handleSuccess}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="flex-1 bg-blue-600 text-white py-2 px-4   hover:bg-blue-700"
           >
             Verify OTP
           </button>
           <button
             onClick={handleCancel}
-            className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
+            className="flex-1 bg-gray-600 text-white py-2 px-4   hover:bg-gray-700"
           >
             Cancel
           </button>

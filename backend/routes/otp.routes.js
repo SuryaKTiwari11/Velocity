@@ -10,8 +10,6 @@ import { protect, adminOnly } from "../middleware/auth.middleware.js";
 const router = express.Router();
 router.post("/send", otpLimiter, sendVerificationOTP);
 router.post("/verify", otpLimiter, verifyUserOTP);
-
-// Admin route to manually clean up OTPs
 router.post("/admin/cleanup", protect, adminOnly, adminCleanupOTPs);
 
 export default router;

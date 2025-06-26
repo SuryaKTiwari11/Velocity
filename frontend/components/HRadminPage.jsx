@@ -97,13 +97,11 @@ const HRadminPage = () => {
       setErr("Only administrators can delete employee records.");
       return;
     }
-    if (window.confirm("Are you sure you want to delete this employee?")) {
-      try {
-        await empApi.deleteEMP(id);
-        setEmps(emps.filter((e) => e.id !== id));
-      } catch {
-        setErr("Failed to delete employee. Please try again.");
-      }
+    try {
+      await empApi.deleteEMP(id);
+      setEmps(emps.filter((e) => e.id !== id));
+    } catch {
+      setErr("Failed to delete employee. Please try again.");
     }
   };
 

@@ -1,12 +1,10 @@
-import React from 'react';
 import useProgress from '../../hook/useProgress.js';
 import Progress from '../Progress.jsx';
-
 const docTypes = [
-  { value: 'resume', label: '📄 Resume' },
-  { value: 'certificate', label: '🏆 Certificate' },
-  { value: 'id_proof', label: '🆔 ID Proof' },
-  { value: 'other', label: '📋 Other' }
+  { value: 'resume', label: 'Resume' },
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'id_proof', label: 'ID Proof' },
+  { value: 'other', label: 'Other' }
 ];
 
 export function ProgressWrapper({ documentId, userId }) {
@@ -17,45 +15,43 @@ export function ProgressWrapper({ documentId, userId }) {
 
 export function DocUpload({ docType, setDocType, setFile, uploading, handleUpload, message, lastUploadedDocId, user }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">📤 Upload Document</h2>
-      <form onSubmit={handleUpload} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Document Type</label>
-            <select
-              value={docType}
-              onChange={e => setDocType(e.target.value)}
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {docTypes.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Choose File</label>
-            <input
-              type="file"
-              onChange={e => setFile(e.target.files[0])}
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-              className="w-full p-3 border rounded-lg"
-            />
-          </div>
+    <div className="bg-gray-100  p-4 mb-4">
+      <h2 className="text-lg font-bold mb-2">Upload Document</h2>
+      <form onSubmit={handleUpload}>
+        <div className="mb-2">
+          <label className="block text-sm mb-1">Document Type</label>
+          <select
+            value={docType}
+            onChange={e => setDocType(e.target.value)}
+            className="w-full p-2 border "
+          >
+            {docTypes.map(type => (
+              <option key={type.value} value={type.value}>{type.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="mb-2">
+          <label className="block text-sm mb-1">Choose File</label>
+          <input
+            type="file"
+            onChange={e => setFile(e.target.files[0])}
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            className="w-full p-2 border  "
+          />
         </div>
         <button
           type="submit"
           disabled={uploading}
-          className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-medium"
+          className="w-full bg-blue-500 text-white py-2   mt-2"
         >
-          {uploading ? '🔄 Uploading...' : '📤 Upload Document'}
+          {uploading ? 'Uploading...' : 'Upload'}
         </button>
       </form>
       {message && (
-        <div className={`mt-4 p-3 rounded-lg ${
-          message.includes('successful') ? 'bg-green-100 text-green-800' :
-          message.includes('failed') ? 'bg-red-100 text-red-800' :
-          'bg-blue-100 text-blue-800'
+        <div className={`mt-2 p-2   text-sm ${
+          message.includes('successful') ? 'bg-green-200 text-green-900' :
+          message.includes('failed') ? 'bg-red-200 text-red-900' :
+          'bg-blue-200 text-blue-900'
         }`}>
           {message}
         </div>
@@ -67,28 +63,28 @@ export function DocUpload({ docType, setDocType, setFile, uploading, handleUploa
 
 export function DocSearch({ searchQuery, setSearchQuery, handleSearch, loadDocuments }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">🔍 Search Documents</h2>
-      <div className="flex space-x-3">
+    <div className="bg-gray-100   p-4 mb-4">
+      <h2 className="text-lg font-bold mb-2">Search Documents</h2>
+      <div className="flex mb-2">
         <input
           type="text"
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Search by filename..."
-          className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          className="flex-1 p-2 border  "
           onKeyPress={e => e.key === 'Enter' && handleSearch()}
         />
         <button
           onClick={handleSearch}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+          className="bg-blue-500 text-white px-3 py-2   ml-2"
         >
-          🔍 Search
+          Search
         </button>
         <button
           onClick={loadDocuments}
-          className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700"
+          className="bg-gray-400 text-white px-3 py-2   ml-2"
         >
-          🔄 Reset
+          Reset
         </button>
       </div>
     </div>
@@ -111,63 +107,52 @@ export function DocList({ documents, loading, loadDocuments, handleDownload, han
     }
   };
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">📋 My Documents ({documents.length})</h2>
+    <div className="bg-gray-100   p-4">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-bold">My Documents ({documents.length})</h2>
         <button
           onClick={loadDocuments}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          className="text-blue-700 text-sm border px-2 py-1  "
         >
-          🔄 Refresh
+          Refresh
         </button>
       </div>
       {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading documents...</p>
+        <div className="text-center py-4">
+          <p className="text-gray-600">Loading documents...</p>
         </div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📂</div>
-          <p className="text-gray-500 text-lg">No documents found</p>
-          <p className="text-gray-400 text-sm">Upload your first document above</p>
+        <div className="text-center py-6">
+          <p className="text-gray-500 text-base">No documents found</p>
+          <p className="text-gray-400 text-xs">Upload your first document above</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div>
           {documents.map(doc => (
-            <div key={doc.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-2xl">
-                      {docTypes.find(t => t.value === doc.documentType)?.label.split(' ')[0] || '📄'}
-                    </span>
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900">{doc.originalName}</h3>
-                      <p className="text-sm text-gray-600">
-                        {docTypes.find(t => t.value === doc.documentType)?.label || doc.documentType} •
-                        {formatFileSize(doc.fileSize)} •
-                        {new Date(doc.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
-                    {doc.status === 'processed' ? '✅ Ready' :
-                      doc.status === 'uploaded' ? '⏳ Processing' : '❌ Error'}
+            <div key={doc.id} className="border   p-2 mb-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="font-semibold text-base">{doc.originalName}</h3>
+                  <p className="text-xs text-gray-600">
+                    {docTypes.find(t => t.value === doc.documentType)?.label || doc.documentType} | {formatFileSize(doc.fileSize)} | {new Date(doc.createdAt).toLocaleDateString()}
+                  </p>
+                  <span className={`inline-block px-2 py-1   text-xs font-medium ${getStatusColor(doc.status)}`}>
+                    {doc.status === 'processed' ? 'Ready' :
+                      doc.status === 'uploaded' ? 'Processing' : 'Error'}
                   </span>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex ml-2">
                   <button
                     onClick={() => handleDownload(doc.id, doc.originalName)}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                    className="bg-blue-500 text-white px-2 py-1   mr-1"
                   >
-                    📥 Download
+                    Download
                   </button>
                   <button
                     onClick={() => handleDelete(doc.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                    className="bg-red-500 text-white px-2 py-1  "
                   >
-                    🗑️ Delete
+                    Delete
                   </button>
                 </div>
               </div>

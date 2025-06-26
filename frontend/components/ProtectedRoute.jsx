@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children, requirePremium = false }) => {
         <p className="mb-4 text-center max-w-xs"> Visit your profile to upgrade your account.</p>
         <div className="flex gap-2">
           <button
-            className="px-4 py-2 bg-black text-white rounded"
+            className="px-4 py-2 bg-black text-white  "
             onClick={() => window.location.href = '/profile'}
           >
             Go to Profile

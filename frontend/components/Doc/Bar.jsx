@@ -1,10 +1,8 @@
-import React from "react";
-
 function Bar({ progress }) {
   return (
-    <div className="w-full bg-gray-200 rounded-lg overflow-hidden h-6 shadow-sm">
+    <div className="w-full bg-gray-300 h-4">
       <div
-        className="bg-green-500 h-full transition-all duration-300"
+        className="bg-blue-500 h-4"
         style={{ width: `${progress}%` }}
       ></div>
     </div>

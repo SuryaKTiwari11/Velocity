@@ -56,14 +56,14 @@ const PremiumPayment = ({ onSuccess }) => {
   };
 
   return (
-    <div className="max-w-sm mx-auto bg-white border rounded p-6 text-center">
+    <div className="max-w-sm mx-auto bg-white border   p-6 text-center">
       <h3 className="text-xl font-semibold mb-4">Premium Feature</h3>
       <p className="mb-2">Requires premium subscription</p>
       <p className="text-2xl font-bold mb-4">₹99/year</p>
       <button
         onClick={handlePayment}
         disabled={loading}
-        className={`w-full py-4 px-6 rounded text-white font-semibold ${
+        className={`w-full py-4 px-6   text-white font-semibold ${
           loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
         }`}
       >

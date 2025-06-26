@@ -6,14 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "db:test": "node scripts/database-tools.js test",
-    "db:reset": "node scripts/database-tools.js reset",
-    "db:update": "node scripts/database-tools.js update",
-    "db:create": "node scripts/database-tools.js create",
-    "db:verify": "node scripts/verify-database.js",
-    "db:sync": "node scripts/sync-database.js"
-  },
+    "dev": "nodemon index.js"
+     },
   "keywords": [],
   "author": "",
   "license": "ISC",

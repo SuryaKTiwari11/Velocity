@@ -63,11 +63,11 @@ const cleanupOldOTPs = async (email = null) => {
         {
           verified: true,
           createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        }, // Verified OTPs older than 24 hours
+        }, 
       ],
     };
 
-    // If email is provided, only cleanup for that email
+   
     if (email) {
       whereCondition.email = email;
     }
@@ -80,7 +80,7 @@ const cleanupOldOTPs = async (email = null) => {
 
 const verifyOTP = async (email, otp, purpose = "verification") => {
   try {
-    // Run cleanup before verification to remove old OTPs
+ 
     await cleanupOldOTPs(email);
 
     const otpRec = await OTP.findOne({

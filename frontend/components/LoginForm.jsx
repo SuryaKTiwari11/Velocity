@@ -100,7 +100,7 @@ const LoginForm = () => {
             <p className="mb-4">Please check your email for verification.</p>
             <button
               onClick={handleVerificationCancel}
-              className="bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
+              className="bg-gray-600 text-white py-2 px-4   hover:bg-gray-700"
             >
               Back to Login
             </button>

@@ -26,7 +26,7 @@ The Employee Management System (EMS) is a **production-ready** full-stack web ap
 
 - ➕ Add, edit, delete, and view employee records
 - 🔍 Search and filter employee data
-- 📄 Upload and manage documents (Premium users only)
+- 📄 Upload and manage documents (Premium users only, with real-time progress and auto-refresh)
 
 ### 👩‍💼 Administrative Features
 
@@ -38,8 +38,20 @@ The Employee Management System (EMS) is a **production-ready** full-stack web ap
 
 - 💳 Razorpay integration for UPI-first premium upgrades (no mock gateway)
 - ⏳ Premium status with expiry (1 year, auto-expiry)
-- 🔒 Only premium users can upload/manage documents
+- 🔒 Only premium users can upload/manage documents (with real-time upload progress and instant document list refresh)
 - 🧾 Payment verification and secure backend logic
+
+### ⚡ Real-Time Document Uploads & Auto-Refresh
+
+EMS now supports real-time document upload progress using **Socket.IO**. After uploading a document, the UI will automatically refresh and show the latest documents as soon as processing is complete. If the socket connection is not active, the app will connect and still refresh the document list after upload.
+
+**How it works:**
+
+- Upload progress is shown live in the UI.
+- When upload is done (or if there is an error), the document list refreshes automatically.
+- If sockets are not connected, the app will connect and refresh after upload.
+
+**Student-friendly:** The code is kept clean and readable, with all real-time and refresh logic handled for you.
 
 ### ⚡ Background Jobs & Automation
 
