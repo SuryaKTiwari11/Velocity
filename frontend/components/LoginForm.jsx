@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuthStore from "../src/store/authStore";
 import { authApi } from "../src/front2backconnect/api.js";
 import SSO from "./SSO";
-import OTPVerification from "./OTPVerification";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -14,9 +13,7 @@ const LoginForm = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
-  const [verificationOTP, setVerificationOTP] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -76,7 +73,6 @@ const LoginForm = () => {
           if (otpResponse.data.success) {
             setError("Verification code sent to your email.");
             if (otpResponse.data.previewUrl) {
-              setPreviewUrl(otpResponse.data.previewUrl);
               window.open(otpResponse.data.previewUrl, "_blank");
             }
           }
@@ -91,31 +87,24 @@ const LoginForm = () => {
       setError("Login failed, please try again.");
     }
   };
-  const handleVerificationSuccess = async (data) => {
-    alert("Email verified! Please log in again.");
-    setNeedsVerification(false);
-    setVerificationOTP("");
-    
-  
-    const result = await login(formData);
-    if (!result.success) setError("Login failed, try again.");
-  };
 
   const handleVerificationCancel = () => {
     setNeedsVerification(false);
-    setVerificationOTP("");
   };
 
   return (
     <div className="bg-black min-h-screen flex items-center justify-center">
       <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">        {needsVerification ? (
-          <OTPVerification
-            email={formData.email}
-            mode="email"
-            onSuccess={handleVerificationSuccess}
-            onCancel={handleVerificationCancel}
-            previewUrl={previewUrl}
-          />
+          <div className="text-center">
+            <h2 className="text-xl font-bold mb-4">Verify Your Email</h2>
+            <p className="mb-4">Please check your email for verification.</p>
+            <button
+              onClick={handleVerificationCancel}
+              className="bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
+            >
+              Back to Login
+            </button>
+          </div>
         ) : (
           <>
             <h1 className="text-2xl font-bold mb-4">Login</h1>

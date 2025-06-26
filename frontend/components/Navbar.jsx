@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuthStore from "../src/store/authStore";
 
 const Navbar = () => {
-  const { isAuthenticated, isAdmin, user, logout } = useAuthStore();
+  const { isAuthenticated, isAdmin, user, logout, isPremium } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -15,8 +15,7 @@ const Navbar = () => {
         <Link to="/">
           <h1 className="text-white font-bold">EMP Management</h1>
         </Link>
-        
-        {isAuthenticated && (
+          {isAuthenticated && (
           <div className="flex gap-2 items-center">
             {user?.name && <span className="text-white text-sm">{user.name}</span>}
             
@@ -24,6 +23,14 @@ const Navbar = () => {
               <Link to="/hradmin">
                 <button className="bg-green-600 text-white px-2 py-1 text-sm">
                   HR Dashboard
+                </button>
+              </Link>
+            )}
+            
+            {isPremium && (
+              <Link to="/documents">
+                <button className="bg-purple-600 text-white px-2 py-1 text-sm">
+                   Documents
                 </button>
               </Link>
             )}

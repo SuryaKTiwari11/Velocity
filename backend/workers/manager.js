@@ -1,7 +1,8 @@
 import emailWorker from "./email.js";
 import cleanupWorker from "./clean.js";
+import documentWorker from "./document.worker.js";
 
-export const workers = [emailWorker, cleanupWorker];
+export const workers = [emailWorker, cleanupWorker, documentWorker];
 
 export const start = () => {
   console.log("Starting workers...");

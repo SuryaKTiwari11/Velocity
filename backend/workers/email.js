@@ -15,10 +15,6 @@ export const emailWorker = new Worker(
         return await sendOTP(job);
       case JOBS.RESET:
         return await sendReset(job);
-      case JOBS.WELCOME:
-        return await sendWelcome(job);
-      case JOBS.NOTIFY:
-        return await sendNotify(job);
       default:
         throw new Error(`Unknown job: ${job.name}`);
     }
@@ -66,29 +62,7 @@ const sendReset = async (job) => {
   }
 };
 
-const sendWelcome = async (job) => {
-  const { email, name } = job.data;
 
-  try {
-    console.log(`Welcome sent to ${email} for ${name}`);
-    return { success: true, message: `Welcome processed for ${email}` };
-  } catch (error) {
-    console.error(`Welcome failed for ${email}:`, error);
-    throw error;
-  }
-};
-//TODO: -> COMBINE THESE INTO  FUNCTION IF POSSIBLE 
-const sendNotify = async (job) => {
-  const { email, subject, message, name } = job.data;
-
-  try {
-    console.log(`Notification sent to ${email}: ${subject}`);
-    return { success: true, message: `Notification processed for ${email}` };
-  } catch (error) {
-    console.error(`Notification failed for ${email}:`, error);
-    throw error;
-  }
-};
 
 // Events
 emailWorker.on("completed", (job, result) => {

@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import OTPVerification from "./OTPVerification";
 
 const VerifyOTPForm = () => {
   const nav = useNavigate();
   const loc = useLocation();
   const [email, setEmail] = useState("");
   const [mode, setMode] = useState("email");
-  const [previewUrl, setPreviewUrl] = useState("");
   
 useEffect(() => {
     const qParams = new URLSearchParams(loc.search);
     const qMode = qParams.get("mode");
     const qEmail = qParams.get("email");
-    const qPreviewUrl = qParams.get("previewUrl");
     
     if (qMode === "reset") {
       setMode("reset");
@@ -21,10 +18,6 @@ useEffect(() => {
     
     if (qEmail) {
       setEmail(qEmail);
-    }
-    
-    if (qPreviewUrl) {
-      setPreviewUrl(qPreviewUrl);
     }
   }, [loc.search]);
   const handleSuccess = (data) => {
@@ -64,14 +57,32 @@ useEffect(() => {
             required
           />
         </div>
-        <OTPVerification
-          email={email}
-          setEmail={setEmail}
-          mode={mode}
-          onSuccess={handleSuccess}
-          onCancel={handleCancel}
-          previewUrl={previewUrl}
-        />
+        
+        {/* Simple OTP Input */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Enter OTP</label>
+          <input
+            type="text"
+            className="w-full p-2 border rounded"
+            placeholder="Enter 6-digit OTP"
+            maxLength="6"
+          />
+        </div>
+        
+        <div className="flex space-x-4">
+          <button
+            onClick={handleSuccess}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+          >
+            Verify OTP
+          </button>
+          <button
+            onClick={handleCancel}
+            className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );

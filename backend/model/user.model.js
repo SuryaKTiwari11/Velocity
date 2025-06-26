@@ -41,6 +41,14 @@ const createUserModel = (sequelize) => {
         defaultValue:
           "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y",
       }, //!https://docs.gravatar.com/sdk/images/
+      isPremium: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      premiumExpiresAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       timestamps: true,

@@ -1,5 +1,5 @@
 const setupAssociations = (models) => {
-  const { User, Employee, OTP } = models;
+  const { User, Employee, OTP, Document } = models;
 
   User.hasOne(Employee, {
     foreignKey: "email",
@@ -19,6 +19,17 @@ const setupAssociations = (models) => {
   OTP.belongsTo(User, {
     foreignKey: "email",
     targetKey: "email",
+  });
+
+  
+  User.hasMany(Document, {
+    foreignKey: "userId",
+    as: "documents",
+  });
+
+  Document.belongsTo(User, {
+    foreignKey: "userId",
+    as: "user",
   });
 
   return models;

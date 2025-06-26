@@ -3,7 +3,6 @@ import { createRedisConnection } from "../configuration/redis.js";
 
 const connection = createRedisConnection();
 
-
 export const JOBS = {
   OTP: "otp",
   RESET: "reset",
@@ -11,6 +10,7 @@ export const JOBS = {
   NOTIFY: "notify",
   CLEANUP: "cleanup",
   SESSION: "session",
+  DOCUMENT: "process-document", // Simple document processing
 };
 
 export const emailQ = new Queue("email", {
@@ -33,10 +33,20 @@ export const cleanQ = new Queue("clean", {
   },
 });
 
+// Simple document processing queue - Perfect for student project
+export const documentQueue = new Queue("document", {
+  connection,
+  defaultJobOptions: {
+    removeOnComplete: 20,
+    removeOnFail: 50,
+    attempts: 2,
+    backoff: { type: "exponential", delay: 3000 },
+  },
+});
 
 export const emailEvents = new QueueEvents("email", { connection });
 export const cleanEvents = new QueueEvents("clean", { connection });
-
+export const documentEvents = new QueueEvents("document", { connection });
 
 emailEvents.on("completed", (job) =>
   console.log(`Email job ${job.id} completed`)
@@ -50,15 +60,22 @@ cleanEvents.on("completed", (job) =>
 cleanEvents.on("failed", (job, err) =>
   console.error(`Clean job ${job.id} failed:`, err)
 );
+documentEvents.on("completed", (job) =>
+  console.log(`Document job ${job.id} completed`)
+);
+documentEvents.on("failed", (job, err) =>
+  console.error(`Document job ${job.id} failed:`, err)
+);
 
 emailQ.on("error", (err) => console.error("Email queue error:", err));
 cleanQ.on("error", (err) => console.error("Clean queue error:", err));
-
+documentQueue.on("error", (err) => console.error("Document queue error:", err));
 
 process.on("SIGTERM", async () => {
   console.log("Shutting down queues...");
   await emailQ.close();
   await cleanQ.close();
+  await documentQueue.close();
   await connection.quit();
 });
 
