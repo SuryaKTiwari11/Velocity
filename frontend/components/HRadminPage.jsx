@@ -1,157 +1,155 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { employeeApi } from "../src/front2backconnect/api";
+import { employeeApi as empApi, otpApi } from "../src/front2backconnect/api";
 import useAuthStore from "../src/store/authStore";
 
 const HRadminPage = () => {
   const [emps, setEmps] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { isAuthenticated, isAdmin } = useAuthStore();
-  const navigate = useNavigate();
+  const [otpMsg, setOtpMsg] = useState("");
+  const [otpLoad, setOtpLoad] = useState(false);
 
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(5);
-  const [total, setTotal] = useState(0);
-  const [sort, setSort] = useState('name');
-  const [order, setOrder] = useState('asc');
-  
+  const handleOtp = async () => {
+    setOtpMsg("");
+    setOtpLoad(true);
+    try {
+      const r = await otpApi.adminCleanup();
+      setOtpMsg(r.data?.msg || "Cleanup triggered.");
+    } catch (e) {
+      console.error("OTP Cleanup error:", e);
+      const m = e?.response?.data?.msg || e?.response?.data?.message || e?.message || "Failed to trigger cleanup.";
+      setOtpMsg(`Error: ${m}`);
+    } finally {
+      setOtpLoad(false);
+    }
+  };
 
-  const [filters, setFilters] = useState({
+  const [load, setLoad] = useState(true);
+  const [err, setErr] = useState(null);
+  const { isAuthenticated: isAuth, isAdmin: isAdm } = useAuthStore();
+  const nav = useNavigate();
+
+  const [pg, setPg] = useState(1);
+  const [lim, setLim] = useState(5);
+  const [tot, setTot] = useState(0);
+  const [srt, setSrt] = useState('name');
+  const [ord, setOrd] = useState('asc');
+
+  const [flt, setFlt] = useState({
     name: '',
     department: '',
     position: '',
   });
-  const [depts, setDepts] = useState([]);
-  const [pos, setPos] = useState([]);
-  
-  // Combined fetch function for filter options
-  const fetchData = async (queryParams = {}) => {
+  const [deps, setDeps] = useState([]);
+  const [poss, setPoss] = useState([]);
+
+  const getData = async (q = {}) => {
     try {
-      setLoading(true);
-      
-      
-      // API request
-      const res = await employeeApi.allEMP(queryParams);
-      const { data, total, departments, positions } = res.data;
-      
+      setLoad(true);
+      const r = await empApi.allEMP(q);
+      const { data, total, departments, positions } = r.data;
       setEmps(data);
-      setTotal(total);
-      
-      // Update filter options if provided
-      if (departments?.length) setDepts(departments);
-      if (positions?.length) setPos(positions);
-      
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch employees. Please try again later.");
-      setLoading(false);
+      setTot(total);
+      if (departments?.length) setDeps(departments);
+      if (positions?.length) setPoss(positions);
+      setLoad(false);
+    } catch (e) {
+      console.error("Error fetching data:", e);
+      setErr("Failed to fetch employees. Please try again later.");
+      setLoad(false);
     }
   };
 
-  // Initial setup
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
+    if (!isAuth) {
+      nav('/login');
       return;
     }
-    
-    if (!isAdmin) {
-      navigate('/profile');
+    if (!isAdm) {
+      nav('/profile');
       return;
     }
-    
-    // Get initial filter options
-    employeeApi.filterOpts()
-      .then(res => {
-        if (res.data) {
-          setDepts(res.data.departments || []);
-          setPos(res.data.positions || []);
+    empApi.filterOpts()
+      .then(r => {
+        if (r.data) {
+          setDeps(r.data.departments || []);
+          setPoss(r.data.positions || []);
         }
       })
-      .catch(err => console.error("Failed to fetch filter options:", err));
-  }, [isAuthenticated, isAdmin, navigate]);
-  
-  // Fetch employees when filters/pagination change
+      .catch(e => console.error("Failed to fetch filter options:", e));
+  }, [isAuth, isAdm, nav]);
+
   useEffect(() => {
-    if (isAuthenticated && isAdmin) {
-      const params = {
-        page,
-        limit: perPage,
-        sortBy: sort,
-        order,
-        ...filters
+    if (isAuth && isAdm) {
+      const p = {
+        page: pg,
+        limit: lim,
+        sortBy: srt,
+        order: ord,
+        ...flt
       };
-      fetchData(params);
+      getData(p);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, perPage, sort, order, filters.department, filters.position, isAuthenticated, isAdmin]);
-  
-  const handleDelete = async (id) => {
-    if (!isAdmin) {
-      setError("Only administrators can delete employee records.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pg, lim, srt, ord, flt.department, flt.position, isAuth, isAdm]);
+
+  const delEmp = async (id) => {
+    if (!isAdm) {
+      setErr("Only administrators can delete employee records.");
       return;
     }
-    
     if (window.confirm("Are you sure you want to delete this employee?")) {
       try {
-        await employeeApi.deleteEMP(id);
-        setEmps(emps.filter((emp) => emp.id !== id));
+        await empApi.deleteEMP(id);
+        setEmps(emps.filter((e) => e.id !== id));
       } catch {
-        setError("Failed to delete employee. Please try again.");
+        setErr("Failed to delete employee. Please try again.");
       }
     }
   };
 
-  // Simplified sorting handler
-  const handleSort = (field) => {
-    const newOrder = field === sort && order === 'asc' ? 'desc' : 'asc';
-    setSort(field);
-    setOrder(newOrder);
+  const sortBy = (f) => {
+    const o = f === srt && ord === 'asc' ? 'desc' : 'asc';
+    setSrt(f);
+    setOrd(o);
   };
 
-  // Filter change handler
-  const handleFilterChange = (e) => {
+  const fltChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({...prev, [name]: value}));
-    if (name !== 'name') setPage(1);
+    setFlt(prev => ({ ...prev, [name]: value }));
+    if (name !== 'name') setPg(1);
   };
-  
-  // Search handler
-  const handleSearch = () => {
-    setPage(1);
-    const params = {
+
+  const doSearch = () => {
+    setPg(1);
+    const p = {
       page: 1,
-      limit: perPage,
-      sortBy: sort,
-      order,
-      ...filters
+      limit: lim,
+      sortBy: srt,
+      order: ord,
+      ...flt
     };
-    fetchData(params);
+    getData(p);
   };
 
-  // Reset filters
-  const resetFilters = () => {
-    setFilters({ name: '', department: '', position: '' });
-    setPage(1);
-    fetchData({ page: 1, limit: perPage, sortBy: sort, order });
+  const resetFlt = () => {
+    setFlt({ name: '', department: '', position: '' });
+    setPg(1);
+    getData({ page: 1, limit: lim, sortBy: srt, order: ord });
   };
-  const paginate = (pageNum) => {
-    setPage(pageNum);
+
+  const goPg = (n) => {
+    setPg(n);
   };
-  
-  
-  const pageNums = [];
-  for (let i = 1; i <= Math.ceil(total / perPage); i++) {
-    pageNums.push(i);
+
+  const pgs = [];
+  for (let i = 1; i <= Math.ceil(tot / lim); i++) {
+    pgs.push(i);
   }
-  
-  const firstIdx = (page - 1) * perPage + 1;
-  const lastIdx = Math.min(page * perPage, total);
 
-  
-  if (loading) {
+  const fst = (pg - 1) * lim + 1;
+  const lst = Math.min(pg * lim, tot);
+
+  if (load) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center navbar-spacing">
         <div className="text-white text-xl">Loading...</div>
@@ -162,16 +160,28 @@ const HRadminPage = () => {
   return (
     <div className="min-h-screen bg-black navbar-spacing">
       <div className="max-w-7xl mx-auto p-6">
-        {error && (
-          <div className="bg-red-100 border text-red-700 p-3 mb-4">{error}</div>
+        {err && (
+          <div className="bg-red-100 border text-red-700 p-3 mb-4">{err}</div>
         )}
-        
+
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">HR Admin Dashboard</h1>
-          <Link to="/add">
-            <button className={`px-6 py-2 bg-green-600 text-white`}>Add New Employee</button>
-          </Link>
+          <div className="flex gap-4">
+            <button
+              onClick={handleOtp}
+              className={`px-4 py-2 bg-blue-700 text-white  ${otpLoad ? 'opacity-60 cursor-not-allowed' : ''}`}
+              disabled={otpLoad}
+            >
+              {otpLoad ? 'Cleaning OTPs...' : 'Cleanup OTPs'}
+            </button>
+            <Link to="/add">
+              <button className={`px-6 py-2 bg-green-600 text-white`}>Add New Employee</button>
+            </Link>
+          </div>
         </div>
+        {otpMsg && (
+          <div className="bg-blue-100 border text-blue-700 p-3 mb-4">{otpMsg}</div>
+        )}
         <div className="bg-gray-800 p-4 mb-6">
           <h2 className="text-white text-xl mb-3">Filters</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -181,49 +191,49 @@ const HRadminPage = () => {
                 <input
                   type="text"
                   name="name"
-                  value={filters.name}
-                  onChange={handleFilterChange}
+                  value={flt.name}
+                  onChange={fltChange}
                   className="flex-1 bg-gray-700 text-white border border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Search by name..."
                 />
-                <button onClick={handleSearch} className={`ml-2 bg-blue-600 text-white px-3 py-1 `}>
+                <button onClick={doSearch} className={`ml-2 bg-blue-600 text-white px-3 py-1 `}>
                   Search
                 </button>
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-300 mb-1">Department</label>
               <select
                 name="department"
-                value={filters.department}
-                onChange={handleFilterChange}
+                value={flt.department}
+                onChange={fltChange}
                 className="w-full bg-gray-700 text-white border border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Departments</option>
-                {depts.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
+                {deps.map(d => (
+                  <option key={d} value={d}>{d}</option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-300 mb-1">Position</label>
               <select
                 name="position"
-                value={filters.position}
-                onChange={handleFilterChange}
+                value={flt.position}
+                onChange={fltChange}
                 className="w-full bg-gray-700 text-white border border-gray-600 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Positions</option>
-                {pos.map(p => (
+                {poss.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
               </select>
             </div>
-            
+
             <div className="flex items-end">
-              <button onClick={resetFilters} className={`px-6 py-2 bg-gray-600 text-white`}>
+              <button onClick={resetFlt} className={`px-6 py-2 bg-gray-600 text-white`}>
                 Reset Filters
               </button>
             </div>
@@ -233,7 +243,6 @@ const HRadminPage = () => {
         {emps.length === 0 ? (
           <div className="text-center text-white bg-gray-800 p-8">
             <p className="text-xl mb-4">no employees found</p>
-          
           </div>
         ) : (
           <>
@@ -241,37 +250,37 @@ const HRadminPage = () => {
               <table className="min-w-full">
                 <thead>
                   <tr className="bg-gray-900 text-gray-300 text-left">
-                    <th className="px-6 py-4" onClick={() => handleSort('name')}>
-                      Name 
+                    <th className="px-6 py-4" onClick={() => sortBy('name')}>
+                      Name
                     </th>
-                    <th className="px-6 py-4" onClick={() => handleSort('email')}>
+                    <th className="px-6 py-4" onClick={() => sortBy('email')}>
                       Email
                     </th>
-                    <th className="px-6 py-4" onClick={() => handleSort('department')}>
+                    <th className="px-6 py-4" onClick={() => sortBy('department')}>
                       Department
                     </th>
-                    <th className="px-6 py-4" onClick={() => handleSort('position')}>
+                    <th className="px-6 py-4" onClick={() => sortBy('position')}>
                       Position
                     </th>
-                    <th className="px-6 py-4" onClick={() => handleSort('salary')}>
+                    <th className="px-6 py-4" onClick={() => sortBy('salary')}>
                       Salary
                     </th>
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-700">
-                  {emps.map((emp) => (
-                    <tr key={emp.id} className="bg-gray-800">
-                      <td className="px-6 py-4 text-white font-medium">{emp.name}</td>
-                      <td className="px-6 py-4 text-gray-300">{emp.email}</td>
-                      <td className="px-6 py-4 text-gray-300">{emp.department || 'Not set'}</td>
-                      <td className="px-6 py-4 text-gray-300">{emp.position || 'Not set'}</td>
-                      <td className="px-6 py-4 text-gray-300">${emp.salary || '0'}</td>
+                  {emps.map((e) => (
+                    <tr key={e.id} className="bg-gray-800">
+                      <td className="px-6 py-4 text-white font-medium">{e.name}</td>
+                      <td className="px-6 py-4 text-gray-300">{e.email}</td>
+                      <td className="px-6 py-4 text-gray-300">{e.department || 'Not set'}</td>
+                      <td className="px-6 py-4 text-gray-300">{e.position || 'Not set'}</td>
+                      <td className="px-6 py-4 text-gray-300">${e.salary || '0'}</td>
                       <td className="px-6 py-4 flex justify-center gap-2">
-                        <Link to={`/edit/${emp.id}`}>
+                        <Link to={`/edit/${e.id}`}>
                           <button className={`bg-yellow-600 text-white px-3 py-1 `}>Edit</button>
                         </Link>
-                        <button onClick={() => handleDelete(emp.id)} className={`bg-red-600 text-white px-3 py-1`}>
+                        <button onClick={() => delEmp(e.id)} className={`bg-red-600 text-white px-3 py-1`}>
                           Delete
                         </button>
                       </td>
@@ -280,37 +289,37 @@ const HRadminPage = () => {
                 </tbody>
               </table>
             </div>
-        
+
             <div className="flex justify-between items-center bg-gray-800 p-4">
               <div className="text-gray-300">
-                Showing {firstIdx} to {lastIdx} of {total} employees
+                Showing {fst} to {lst} of {tot} employees
               </div>
               <nav>
                 <ul className="flex space-x-1">
                   <li>
-                    <button 
-                      onClick={() => paginate(Math.max(1, page - 1))}
-                      disabled={page === 1}
-                      className={`px-3 py-1 ${page === 1 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                    <button
+                      onClick={() => goPg(Math.max(1, pg - 1))}
+                      disabled={pg === 1}
+                      className={`px-3 py-1 ${pg === 1 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                     >
                       Prev
                     </button>
                   </li>
-                  {pageNums.map(num => (
-                    <li key={num}>
+                  {pgs.map(n => (
+                    <li key={n}>
                       <button
-                        onClick={() => paginate(num)}
-                        className={`px-3 py-1 ${page === num ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                        onClick={() => goPg(n)}
+                        className={`px-3 py-1 ${pg === n ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                       >
-                        {num}
+                        {n}
                       </button>
                     </li>
                   ))}
                   <li>
-                    <button 
-                      onClick={() => paginate(Math.min(pageNums.length, page + 1))}
-                      disabled={page === pageNums.length || pageNums.length === 0}
-                      className={`px-3 py-1 ${page === pageNums.length || pageNums.length === 0 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white'}`}
+                    <button
+                      onClick={() => goPg(Math.min(pgs.length, pg + 1))}
+                      disabled={pg === pgs.length || pgs.length === 0}
+                      className={`px-3 py-1 ${pg === pgs.length || pgs.length === 0 ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white'}`}
                     >
                       Next
                     </button>

@@ -9,7 +9,7 @@ const PremiumPayment = ({ onSuccess }) => {
   const handlePayment = async () => {
     setLoading(true);
     try {
-      const response = await paymentApi.createOrder();
+      const response = await paymentApi.order();
       const order = response.data;
 
       const options = {
@@ -21,7 +21,7 @@ const PremiumPayment = ({ onSuccess }) => {
         order_id: order.id,
         handler: async function (response) {
           try {
-            const result = await paymentApi.verifyPayment({
+            const result = await paymentApi.verify({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,

@@ -25,22 +25,24 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /pdf|doc|docx|jpg|jpeg|png/;
     const extName = allowedTypes.test(
       path.extname(file.originalname).toLowerCase()
     );
     const mimeType = allowedTypes.test(file.mimetype);
-
     if (mimeType && extName) {
       return cb(null, true);
     } else {
-      cb(new Error("Only PDF, DOC, DOCX, JPG, PNG files are allowed"));
+      cb(
+        new Error(
+          "Only .pdf, .doc, .docx, .jpg, .jpeg, .png files are allowed "
+        )
+      );
     }
   },
 });
-
 
 router.post(
   "/upload",

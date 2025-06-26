@@ -5,7 +5,7 @@ import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Get stats
+
 router.get("/stats", protect, adminOnly, async (req, res) => {
   try {
     const email = await getStats();

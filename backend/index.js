@@ -23,7 +23,7 @@ configDotenv();
 const app = express(),
   server = createServer(app),
   PORT = process.env.PORT || 3000;
-initSocket(server); 
+initSocket(server);
 console.log("Socket.io ready");
 
 app.use(
@@ -41,9 +41,9 @@ app.use((req, res, next) => {
 app.use("/api/employees", employeeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/otp", otpRoutes);
-app.use("/api/queues", queueRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/admin", queueRoutes);
 app.use("/admin/queues", adminAuth, serverAdapter.getRouter());
 
 server.listen(PORT, async () => {

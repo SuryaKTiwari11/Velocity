@@ -163,7 +163,7 @@ export const filterOpts = async (req, res) => {
     const positions = [
       ...new Set(employees.map((emp) => emp.position).filter(Boolean)),
     ];
-
+    //!unique departments and positions NOT UNDEFINED OR NULL 
     res.status(200).json({
       success: true,
       departments,

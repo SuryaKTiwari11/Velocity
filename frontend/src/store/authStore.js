@@ -8,7 +8,7 @@ const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       isAdmin: false,
-      isPremium: false, // Add premium status
+      isPremium: false,
       isLoading: false,
       error: null,
       login: async (credentials) => {
@@ -25,9 +25,9 @@ const useAuthStore = create(
             isLoading: false,
           });
 
-          // Check premium status after successful login
+          
           try {
-            const premiumResponse = await paymentApi.checkPremium();
+            const premiumResponse = await paymentApi.status();
             const { isPremium } = premiumResponse.data;
             set({ isPremium });
           } catch (error) {
@@ -148,9 +148,9 @@ const useAuthStore = create(
             isLoading: false,
           });
 
-          // Check premium status after successful auth
+         
           try {
-            const premiumResponse = await paymentApi.checkPremium();
+            const premiumResponse = await paymentApi.status();
             const { isPremium } = premiumResponse.data;
             set({ isPremium });
           } catch (error) {
@@ -171,10 +171,10 @@ const useAuthStore = create(
         }
       },
 
-      // Check premium status - student level
+      
       checkPremium: async () => {
         try {
-          const response = await paymentApi.checkPremium();
+          const response = await paymentApi.status();
           const { isPremium } = response.data;
           set({ isPremium });
           return isPremium;
@@ -185,7 +185,7 @@ const useAuthStore = create(
         }
       },
 
-      // Update premium status
+    
       setPremium: (isPremium) => set({ isPremium }),
     }),
     {

@@ -49,7 +49,11 @@ export const documentApi = {
   delete: (docId) => api.delete(`/documents/${docId}`),
 };
 export const paymentApi = {
-  createOrder: () => api.post("/payment/create-order"),
-  verifyPayment: (data) => api.post("/payment/verify-payment", data),
-  checkPremium: () => api.get("/payment/premium-status"),
+  order: () => api.post("/payment/create-order"),
+  verify: (data) => api.post("/payment/verify-payment", data),
+  status: () => api.get("/payment/premium-status"),
+};
+
+export const otpApi = {
+  adminCleanup: () => api.post("/otp/admin/cleanup"),
 };

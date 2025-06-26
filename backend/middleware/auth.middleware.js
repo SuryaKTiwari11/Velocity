@@ -5,7 +5,6 @@ configDotenv();
 const key = process.env.JWT_SECRET;
 
 const getToken = (req) => {
-  //! either authorization header mei bearer ke baad ya cookie mei
   if (req.headers.authorization) {
     return req.headers.authorization.startsWith("Bearer ")
       ? req.headers.authorization.substring(7)
@@ -14,7 +13,6 @@ const getToken = (req) => {
   return req.cookies?.jwt;
 };
 
-// Protect routes - user must be authenticated
 export const protect = async (req, res, next) => {
   try {
     const token = getToken(req);
@@ -34,7 +32,6 @@ export const protect = async (req, res, next) => {
         .json({ success: false, message: "user not found" });
 
     if (!user.isVerified && !user.googleId && !user.githubId) {
-      //! i am considering that google and github are verified
       return res.status(403).json({
         success: false,
         message: "Please verify your email",
@@ -53,7 +50,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Admin only middleware - requires protect middleware first
 export const adminOnly = (req, res, next) => {
   if (!req.user || !req.user.isAdmin) {
     return res.status(403).json({
@@ -64,7 +60,6 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-// For backward compatibility
 export const protectedRoute = protect;
 export const adminRoute = async (req, res, next) => {
   protect(req, res, () => {
