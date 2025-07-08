@@ -20,9 +20,13 @@ export default function useDocumentManager() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const response = await documentApi.list(user.id);
-      setDocuments(response.data.documents || []);
+      // Updated to use S3 documents API
+      const response = await documentApi.list();
+      console.log("📄 Documents API response:", response.data);
+      // S3 API returns data in response.data.data, not response.data.documents
+      setDocuments(response.data.data || []);
     } catch (error) {
+      console.error("Load documents error:", error);
       setMessage("Failed to load documents");
     } finally {
       setLoading(false);
@@ -79,7 +83,7 @@ export default function useDocumentManager() {
       setFile(null);
       if (e.target && typeof e.target.reset === "function") e.target.reset();
       if (res.data?.document?.id) setLastUploadedDocId(res.data.document.id);
-   
+
       if (!socketRef.current) {
         socketRef.current = io("http://localhost:3000");
         setTimeout(() => loadDocuments(), 200);
@@ -94,37 +98,62 @@ export default function useDocumentManager() {
 
   const handleDelete = async (docId) => {
     try {
+      setMessage("Deleting document...");
       await documentApi.delete(docId);
-      setMessage("Document deleted");
-      loadDocuments();
+      setMessage("Document deleted successfully");
+      // Immediately refresh the document list
+      await loadDocuments();
     } catch (error) {
-      setMessage("Delete failed: " + error.message);
+      console.error("Delete error:", error);
+      if (error.response?.status === 404) {
+        setMessage("Document already deleted");
+        // Refresh list to sync state
+        await loadDocuments();
+      } else {
+        setMessage("Delete failed: " + (error.response?.data?.message || error.message));
+      }
     }
   };
 
   const handleDownload = async (docId, fileName) => {
     try {
+      setMessage("Preparing download...");
+      // Get S3 download URL
       const response = await documentApi.download(docId);
-      const url = window.URL.createObjectURL(response.data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+
+      if (response.data.success && response.data.downloadUrl) {
+        // Open S3 presigned URL in new tab or trigger download
+        const link = document.createElement("a");
+        link.href = response.data.downloadUrl;
+        link.download = fileName || response.data.filename;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setMessage(`Download started: ${fileName || response.data.filename}`);
+      } else {
+        throw new Error(response.data.message || "Failed to get download URL");
+      }
     } catch (error) {
-      setMessage("Download failed");
+      console.error("Download error:", error);
+      if (error.response?.status === 404) {
+        setMessage("Document not found");
+      } else if (error.response?.status === 403) {
+        setMessage("Not authorized to download this document");
+      } else {
+        setMessage("Download failed: " + (error.response?.data?.message || error.message));
+      }
     }
   };
-
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return loadDocuments();
     try {
-      const response = await documentApi.search(user.id, searchQuery);
-      setDocuments(response.data.documents || []);
+      // Use S3 search endpoint
+      const response = await documentApi.search(searchQuery);
+      setDocuments(response.data.documents || response.data || []);
     } catch (error) {
+      console.error("Search error:", error);
       setMessage("Search failed");
     }
   };

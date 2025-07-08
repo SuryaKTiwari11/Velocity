@@ -1,0 +1,19 @@
+{
+  "name": "ems-workspace",
+  "version": "1.0.0",
+  "description": "Employee Management System - Workspace Root",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "start:docker": "docker-compose up -d"
+  },
+  "keywords": [
+    "ems",
+    "employee-management",
+    "workspace"
+  ],
+  "author": "SURYA",
+  "license": "ISC"
+}

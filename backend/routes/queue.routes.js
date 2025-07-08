@@ -4,8 +4,10 @@ import { getCleanStats } from "../queues/clean.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
-router.get("/stats", protect, adminOnly, async (req, res) => {
-  try {
+const stats = async (req, res) => {
+  // This function should return the statistics for the email queue
+  // Implement your logic to fetch email queue stats here
+    try {
     const emailStats = await getStats();
     const cleanupStats = await getCleanStats();
 
@@ -25,6 +27,7 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       error: error.message,
     });
   }
-});
+}
+router.get("/stats", protect, adminOnly, stats);
 
 export default router;

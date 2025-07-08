@@ -24,7 +24,8 @@ useEffect(() => {
     if (mode === "reset") {
       nav("/reset-password", { state: { email: data.email, resetToken: data.resetToken }});
     } else {
-      nav("/login");
+      // Redirect new users to onboarding after email verification
+      nav("/onboarding");
     }
   };
 

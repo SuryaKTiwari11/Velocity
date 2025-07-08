@@ -1,11 +1,35 @@
 @import "tailwindcss";
 
-/* Utility class for navbar spacing */
-.navbar-spacing {
-  padding-top: 3.5rem; /* Equivalent to Tailwind's pt-14 */
+
+
+/* Stream Chat Styles */
+.str-chat__channel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to bottom, #c9e8c9, #b7e7bb);
+  height: 100%;
 }
 
-/* For fixed height navbar */
-.navbar {
-  height: 3.5rem; /* Make sure this matches the padding-top above */
+.str-chat__container {
+  max-width: 1200px;
+  width: 100%;
+  height: 80% !important;
+  margin: 0 auto !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.str-chat__list {
+  background-color: #ffffff;
+  padding: 12px;
+}
+
+.str-chat__list-notifications {
+  display: none;
+}
+
+.str-chat__message-input {
+  border-top: 1px solid #ddd;
 }

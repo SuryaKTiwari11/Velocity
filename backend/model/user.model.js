@@ -49,6 +49,40 @@ const createUserModel = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      city: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        comment: "User city (from predefined list of Indian cities)",
+      },
+      isTrainingVideoDone: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      videoProgress: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: {},
+        comment: "JSON (tracks watched videos)",
+      },
+      isDocumentSubmitted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      isDocumentsApproved: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      onboardingStatus: {
+        type: DataTypes.ENUM(
+          'pending',
+          'video_training',
+          'document_submission',
+          'under_review',
+          'approved',
+          'rejected'
+        ),
+        defaultValue: 'pending',
+      },
     },
     {
       timestamps: true,

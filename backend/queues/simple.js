@@ -11,6 +11,7 @@ export const JOBS = {
   CLEANUP: "cleanup",
   SESSION: "session",
   DOCUMENT: "process-document", // Simple document processing
+  INVITE: "invite", // New job for invite emails
 };
 
 export const emailQ = new Queue("email", {

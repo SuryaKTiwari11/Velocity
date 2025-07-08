@@ -13,36 +13,7 @@ import {
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/temp/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /pdf|doc|docx|jpg|jpeg|png/;
-    const extName = allowedTypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-    const mimeType = allowedTypes.test(file.mimetype);
-    if (mimeType && extName) {
-      return cb(null, true);
-    } else {
-      cb(
-        new Error(
-          "Only .pdf, .doc, .docx, .jpg, .jpeg, .png files are allowed "
-        )
-      );
-    }
-  },
-});
 
 router.post(
   "/upload",

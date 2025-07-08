@@ -10,7 +10,11 @@ const LoginForm = () => {
   const { login, isAuthenticated, ssoSuccess } = useAuthStore();
   const { isAdmin } = useAuthStore();
 
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({
+    email: localStorage.getItem("loginEmail") || "",
+    password: localStorage.getItem("loginPassword") || "",
+    companyCode: localStorage.getItem("loginCompanyCode") || ""
+  });
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,13 +54,20 @@ const LoginForm = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Store in localStorage for persistence
+    if (["email", "companyCode", "password"].includes(e.target.name)) {
+      localStorage.setItem(
+        `login${e.target.name.charAt(0).toUpperCase() + e.target.name.slice(1)}`,
+        e.target.value
+      );
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");  
-      if (!formData.email || !formData.password) {
-      setError("Please provide both email and password");
+    if (!formData.email || !formData.password || !formData.companyCode) {
+      setError("Please provide email, password, and company code");
       return;
     }
 
@@ -124,8 +135,17 @@ const LoginForm = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="border p-2 w-full mb-4"
+                className="border p-2 w-full mb-3"
                 placeholder="Password"
+                required
+              />
+              <input
+                type="text"
+                name="companyCode"
+                value={formData.companyCode}
+                onChange={handleChange}
+                className="border p-2 w-full mb-4"
+                placeholder="Company Code"
                 required
               />
               <div className="text-right mb-4">
@@ -139,7 +159,8 @@ const LoginForm = () => {
               </div>
               <button className="bg-blue-500 text-white p-2  w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
-              </button>            </form>
+              </button>
+            </form>
 
             <SSO />
 

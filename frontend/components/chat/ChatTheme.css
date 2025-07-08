@@ -1,0 +1,409 @@
+/* Dark theme overrides for Stream Chat */
+
+/* Main container */
+.str-chat__container {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.str-chat__channel {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__main-panel {
+  background-color: #1f2937 !important;
+}
+
+/* Channel List */
+.str-chat__list {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__li {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-preview {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-preview:hover {
+  background-color: #374151 !important;
+}
+
+.str-chat__channel-preview--active {
+  background-color: #3b82f6 !important;
+}
+
+.str-chat__channel-preview__content {
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-preview__content-wrapper {
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-preview__content-title {
+  color: #f9fafb !important;
+}
+
+/* Custom call invitation cards - ensure they override Stream Chat styles */
+.str-chat__message-wrapper:has(.call-invitation-card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 1rem 0 !important;
+}
+
+.call-invitation-card {
+  margin: 1rem !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+.str-chat__channel-preview__content-subtitle {
+  color: #9ca3af !important;
+}
+
+/* ChannelList specific dark theme styling */
+.str-chat__channel-list {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-list-messenger {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-list-messenger__main {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-preview-messenger {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.str-chat__channel-preview-messenger:hover {
+  background-color: #374151 !important;
+}
+
+.str-chat__channel-preview-messenger--active {
+  background-color: #3b82f6 !important;
+}
+
+.str-chat__channel-preview-messenger__name {
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-preview-messenger__last-message {
+  color: #9ca3af !important;
+}
+
+.str-chat__channel-preview-messenger__last-message-time {
+  color: #9ca3af !important;
+}
+
+/* Messages */
+.str-chat__message-simple {
+  background-color: transparent !important;
+}
+
+.str-chat__message-simple__content {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.str-chat__message-simple__content--me {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
+.str-chat__message {
+  background-color: transparent !important;
+}
+
+.str-chat__message-text {
+  color: #f9fafb !important;
+}
+
+.str-chat__message-text--me {
+  color: white !important;
+}
+
+.str-chat__message-simple__text {
+  color: #f9fafb !important;
+}
+
+.str-chat__message-simple__text--me {
+  color: white !important;
+}
+
+/* Ensure message content is visible */
+.str-chat__message-simple__text__inner {
+  color: #f9fafb !important;
+}
+
+.str-chat__message-simple__text__inner--me {
+  color: white !important;
+}
+
+.str-chat__message-text-inner {
+  color: #000000 !important;
+}
+
+.str-chat__message-text-inner--me {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Fix message bubbles visibility */
+.str-chat__message-text-inner p {
+  color: inherit !important;
+}
+
+.str-chat__message-simple__text__inner p {
+  color: inherit !important;
+}
+
+/* Ensure all message elements are visible */
+.str-chat__message-simple__text__inner * {
+  color: inherit !important;
+}
+
+.str-chat__message-text-inner * {
+  color: inherit !important;
+}
+
+/* Message wrapper styling */
+.str-chat__message-wrapper {
+  background-color: transparent !important;
+}
+
+.str-chat__message-wrapper--me {
+  background-color: transparent !important;
+}
+
+/* Message input */
+.str-chat__message-input {
+  background-color: #374151 !important;
+  border-top: 1px solid #4b5563 !important;
+}
+
+.str-chat__message-input__input {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+  border: 1px solid #6b7280 !important;
+}
+
+.str-chat__message-input__input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.str-chat__message-input__input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Message list background */
+.str-chat__virtual-message__wrapper {
+  background-color: transparent !important;
+}
+
+/* Thread panel */
+.str-chat__thread {
+  background-color: #1f2937 !important;
+  border-left: 1px solid #4b5563 !important;
+}
+
+.str-chat__thread-header {
+  background-color: #374151 !important;
+  border-bottom: 1px solid #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+/* Channel header */
+.str-chat__channel-header {
+  background-color: #1f2937 !important;
+  border-bottom: 1px solid #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+/* Avatar borders */
+.str-chat__avatar {
+  border: 2px solid #4b5563 !important;
+}
+
+/* Message metadata */
+.str-chat__message-team__meta {
+  color: #9ca3af !important;
+}
+
+/* Typing indicator */
+.str-chat__typing-indicator {
+  background-color: #374151 !important;
+  color: #9ca3af !important;
+}
+
+/* Message actions */
+.str-chat__message-actions-box {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.str-chat__message-actions-list {
+  background-color: #374151 !important;
+}
+
+.str-chat__message-actions-list-item {
+  color: #f9fafb !important;
+}
+
+.str-chat__message-actions-list-item:hover {
+  background-color: #4b5563 !important;
+}
+
+/* File attachments */
+.str-chat__attachment {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.str-chat__attachment__title {
+  color: #f9fafb !important;
+}
+
+.str-chat__attachment__description {
+  color: #9ca3af !important;
+}
+
+/* Call invitation styling */
+.str-chat__message-attachment {
+  background-color: #374151 !important;
+  border: 1px solid #4b5563 !important;
+  border-radius: 8px !important;
+}
+
+.str-chat__message-attachment-card {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+/* Message reactions */
+.str-chat__reaction-list {
+  background-color: #374151 !important;
+}
+
+.str-chat__reaction-list-item {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+/* Message replies */
+.str-chat__quoted-message-preview {
+  background-color: #4b5563 !important;
+  border-left: 3px solid #3b82f6 !important;
+  color: #f9fafb !important;
+}
+
+/* Loading indicators */
+.str-chat__loading-indicator {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+/* Date separators */
+.str-chat__date-separator {
+  color: #9ca3af !important;
+}
+
+.str-chat__date-separator-line {
+  background-color: #4b5563 !important;
+}
+
+/* Scrollbars */
+.str-chat__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.str-chat__list::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 3px;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Window scrollbar */
+.str-chat__window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.str-chat__window::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.str-chat__window::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 3px;
+}
+
+.str-chat__window::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Additional dark theme fixes */
+.str-chat .str-chat__li.str-chat__li--active {
+  background-color: #3b82f6 !important;
+}
+
+.str-chat__channel-list {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-list-item {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-list-item:hover {
+  background-color: #374151 !important;
+}
+
+.str-chat__message-list {
+  background-color: #1f2937 !important;
+}
+
+/* Fix any remaining white backgrounds */
+.str-chat__message-list-scroll {
+  background-color: #1f2937 !important;
+}
+
+.str-chat__channel-search {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+.str-chat__channel-search-input {
+  background-color: #4b5563 !important;
+  color: #f9fafb !important;
+  border: 1px solid #6b7280 !important;
+}
+
+/* Ensure all text is readable */
+.str-chat * {
+  color: inherit;
+}
+
+.str-chat__message-status {
+  color: #9ca3af !important;
+}
+
+.str-chat__message-time {
+  color: #9ca3af !important;
+}

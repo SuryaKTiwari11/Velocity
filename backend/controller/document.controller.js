@@ -1,22 +1,20 @@
-
 import { Document } from "../model/model.js";
 import { documentQueue } from "../queues/simple.js";
-
+import { logAction, logLogin } from "../model/audit.js"; // Import logging functions
 
 export const uploadDocument = async (req, res) => {
   try {
     const { documentType } = req.body;
     const file = req.file;
     const userId = req.user.id;
-    
+
     if (!file || !documentType) {
       return res.status(400).json({
         success: false,
         message: "File and document type are required",
       });
     }
-    
-    
+
     const document = await Document.create({
       userId,
       originalName: file.originalname,
@@ -27,14 +25,30 @@ export const uploadDocument = async (req, res) => {
       filePath: file.path,
       status: "uploaded",
     });
-    
+
     await documentQueue.add("process-document", {
       documentId: document.id,
       filePath: file.path,
       fileName: file.filename,
       userId: userId,
     });
-    
+
+    // Log the upload action
+    await logAction(
+      userId,
+      "UPLOAD",
+      "Document",
+      document.id,
+      null,
+      {
+        originalName: file.originalname,
+        documentType,
+        fileSize: file.size,
+        status: "uploaded",
+      },
+      req
+    );
+
     res.json({
       success: true,
       message: "Document uploaded successfully",
@@ -55,139 +69,48 @@ export const uploadDocument = async (req, res) => {
   }
 };
 
-
-export const listDocuments = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    
-    const documents = await Document.findAll({
-      where: { userId },
-      attributes: [
-        "id",
-        "originalName",
-        "documentType",
-        "fileSize",
-        "status",
-        "createdAt",
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-    
-    res.json({
-      success: true,
-      documents,
-    });
-  } catch (error) {
-    console.error("List documents error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch documents",
-    });
-  }
-};
-
-
-export const downloadDocument = async (req, res) => {
-  try {
-    const { docId } = req.params;
-    
-    const document = await Document.findByPk(docId);
-    
-    if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
-    }
-    
-    if (document.userId !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied",
-      });
-    }
-    
-    
-    res.download(document.filePath, document.originalName);
-  } catch (error) {
-    console.error("Download error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Download failed",
-    });
-  }
-};
-export const searchDocuments = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { q } = req.query;
-
-  
-    if (!q || !q.trim()) {
-      return res.json({
-        success: true,
-        documents: [],
-        query: q,
-        count: 0,
-      });
-    }
-
-    const documents = await Document.findAll({
-      where: {
-        userId,
-        originalName: {
-          [Document.sequelize.Sequelize.Op.iLike]: `%${q.trim()}%`,
-        },
-      },
-      attributes: [
-        "id",
-        "originalName",
-        "documentType",
-        "fileSize",
-        "status",
-        "createdAt",
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-
-    res.json({
-      success: true,
-      documents,
-      query: q,
-      count: documents.length,
-    });
-  } catch (error) {
-    console.error("Search error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Search failed",
-    });
-  }
-};
-
 export const deleteDocument = async (req, res) => {
   try {
     const { docId } = req.params;
     const document = await Document.findByPk(docId);
+
     if (!document) {
       return res
         .status(404)
         .json({ success: false, message: "Document not found" });
     }
-    //! u can only delete your fl
+
     if (document.userId !== req.user.id) {
       return res.status(403).json({ success: false, message: "Access denied" });
     }
-    //! del from the disk (S3)
+
     try {
       if (document.filePath) {
-        const fs = await import("fs-extra"); 
-        //DIS THIS CALLED DYNAMIC IMPORT
-        // U CALL IT ONLY WHEN NEEDED
-        await fs.unlink(document.filePath).catch(() => {}); 
+        const fs = await import("fs-extra");
+        await fs.unlink(document.filePath).catch(() => {});
       }
     } catch {}
+
+    const oldData = {
+      originalName: document.originalName,
+      documentType: document.documentType,
+      fileSize: document.fileSize,
+      status: document.status,
+    };
+
     await document.destroy();
+
+    // Log the delete action
+    await logAction(
+      req.user.id,
+      "DELETE",
+      "Document",
+      docId,
+      oldData,
+      null,
+      req
+    );
+
     res.json({ success: true, message: "Document deleted" });
   } catch (error) {
     console.error("Delete error:", error);

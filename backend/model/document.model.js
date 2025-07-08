@@ -45,6 +45,16 @@ const createDocumentModel = (sequelize) => {
         type: DataTypes.ENUM("uploaded", "processed", "error"),
         defaultValue: "uploaded",
       },
+      companyId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: "companies",
+          key: "companyId",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
     },
     {
       timestamps: true,

@@ -2,7 +2,8 @@ import { sendOTP, verifyOTP, cleanupOldOTPs } from "../helper/otpService.js";
 import { User } from "../model/model.js";
 import { addOTP } from "../queues/email.js";
 import { addCleanup } from "../queues/clean.js";
-
+import { configDotenv } from "dotenv";
+configDotenv();
 export const sendVerificationOTP = async (req, res) => {
   const { email } = req.body;
   if (!email)
@@ -15,21 +16,17 @@ export const sendVerificationOTP = async (req, res) => {
     const name = user?.name || "User";
     const jobRes = await addOTP(email, otpRes.otp, name);
     if (jobRes.success) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          msg: "OTP queued for sending",
-          jobId: jobRes.jobId,
-        });
-    }
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "Failed to queue OTP email",
-        error: jobRes.error,
+      return res.status(200).json({
+        success: true,
+        msg: "OTP queued for sending",
+        jobId: jobRes.jobId,
       });
+    }
+    return res.status(500).json({
+      success: false,
+      msg: "Failed to queue OTP email",
+      error: jobRes.error,
+    });
   } catch (err) {
     console.error("Error in sendVerificationOTP:", err);
     return res
@@ -48,6 +45,12 @@ export const verifyUserOTP = async (req, res) => {
       .status(400)
       .json({ success: false, msg: otpRes.message, verified: false });
   try {
+    if (process.env.NODE_ENV === "development" && otp !== "123456") {
+      console.warn(`Warning: OTP ${otp} is not the development OTP`);
+      return res
+        .status(200)
+        .json({ success: true, msg: otpRes.message, verified: true });
+    }
     const user = await User.findOne({ where: { email } });
     if (user) {
       await user.update({ isVerified: true });
@@ -61,22 +64,18 @@ export const verifyUserOTP = async (req, res) => {
       .json({ success: true, msg: otpRes.message, verified: true });
   } catch (err) {
     console.error("Error updating user:", err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "OTP verified but can't update user",
-        err: err.message,
-      });
+    return res.status(500).json({
+      success: false,
+      msg: "OTP verified but can't update user",
+      err: err.message,
+    });
   }
 };
-
 
 export const setupOTPCleanup = () => {
   cleanupOldOTPs();
   setInterval(cleanupOldOTPs, 60 * 60 * 1000);
 };
-
 
 export const adminCleanupOTPs = async (req, res) => {
   try {
@@ -86,28 +85,22 @@ export const adminCleanupOTPs = async (req, res) => {
         .json({ success: false, msg: "Admin access required" });
     const jobRes = await addCleanup(24);
     if (jobRes.success) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          msg: "OTP cleanup job queued successfully",
-          jobId: jobRes.jobId,
-        });
+      return res.status(200).json({
+        success: true,
+        msg: "OTP cleanup job queued successfully",
+        jobId: jobRes.jobId,
+      });
     }
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "Failed to queue OTP cleanup job",
-        error: jobRes.error,
-      });
+    return res.status(500).json({
+      success: false,
+      msg: "Failed to queue OTP cleanup job",
+      error: jobRes.error,
+    });
   } catch (err) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "Error during OTP cleanup",
-        err: err.message,
-      });
+    return res.status(500).json({
+      success: false,
+      msg: "Error during OTP cleanup",
+      err: err.message,
+    });
   }
 };

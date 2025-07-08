@@ -64,7 +64,20 @@ export const addNotify = async (email, subject, message, name = "User") => {
   }
 };
 
-
+export const addInvite = async (email, inviteToken, companyId) => {
+  try {
+    const job = await emailQ.add(
+      JOBS.INVITE,
+      { email, inviteToken, companyId },
+      { priority: 1 }
+    );
+    console.log(`Invite queued for ${email} (ID: ${job.id})`);
+    return { success: true, jobId: job.id };
+  } catch (error) {
+    console.error("Failed to queue invite:", error);
+    return { success: false, error: error.message };
+  }
+};
 export const getStats = async () => {
   try {
     const waiting = await emailQ.getWaiting();

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../src/store/authStore.js';
+import { onboardingApi } from '../src/front2backconnect/api.js';
 
 const ProfilePage = () => {
   const { user, isAuthenticated, checkAuth, isPremium, checkPremium } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [onboardingStatus, setOnboardingStatus] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,11 +16,21 @@ const ProfilePage = () => {
         navigate('/login');
       } else {
         await checkPremium();
+        await fetchOnboardingStatus();
       }
       setLoading(false);
     };
     verifyAuth();
   }, [checkAuth, checkPremium, navigate]);
+
+  const fetchOnboardingStatus = async () => {
+    try {
+      const response = await onboardingApi.getData();
+      setOnboardingStatus(response.data.user);
+    } catch (error) {
+      console.error('Error fetching onboarding status:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -46,6 +58,74 @@ const ProfilePage = () => {
       <p className="text-xl mb-6">
         Welcome, <span className="font-semibold">{user?.name}</span>
       </p>
+
+      {/* Onboarding Status Section */}
+      {onboardingStatus && (
+        <div className="bg-white border p-6 rounded-sm max-w-lg mb-6">
+          <h2 className="text-xl font-semibold mb-4">Onboarding Status</h2>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span>Training Videos</span>
+              <span className={`px-2 py-1 rounded text-sm ${
+                onboardingStatus.isTrainingVideoDone 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {onboardingStatus.isTrainingVideoDone ? '✅ Complete' : '⏳ Pending'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Document Submission</span>
+              <span className={`px-2 py-1 rounded text-sm ${
+                onboardingStatus.isDocumentSubmitted 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {onboardingStatus.isDocumentSubmitted ? '✅ Submitted' : '⏳ Pending'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Document Approval</span>
+              <span className={`px-2 py-1 rounded text-sm ${
+                onboardingStatus.isDocumentsApproved 
+                  ? 'bg-green-100 text-green-800' 
+                  : onboardingStatus.onboardingStatus === 'rejected'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {onboardingStatus.isDocumentsApproved 
+                  ? '✅ Approved' 
+                  : onboardingStatus.onboardingStatus === 'rejected'
+                  ? '❌ Rejected'
+                  : '⏳ Under Review'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-t pt-3">
+              <span className="font-medium">Overall Status</span>
+              <span className={`px-3 py-1 rounded font-medium ${
+                onboardingStatus.onboardingStatus === 'approved' 
+                  ? 'bg-green-100 text-green-800' 
+                  : onboardingStatus.onboardingStatus === 'rejected'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-blue-100 text-blue-800'
+              }`}>
+                {onboardingStatus.onboardingStatus.replace('_', ' ').toUpperCase()}
+              </span>
+            </div>
+          </div>
+          
+          {onboardingStatus.onboardingStatus !== 'approved' && (
+            <div className="mt-4">
+              <button
+                onClick={() => navigate('/onboarding')}
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              >
+                Continue Onboarding
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
      
       <div className="bg-white border p-6 -sm max-w-lg mb-6">

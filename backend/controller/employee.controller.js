@@ -3,13 +3,14 @@ import { Op } from "sequelize";
 export const createEMP = async (req, res) => {
   try {
     const { name, department, position, email, salary } = req.body;
-    if (!name || !department || !position || !email || !salary) {
+    const companyId = req.user?.companyId;
+    if (!name || !department || !position || !email || !salary || !companyId) {
       return res.status(400).json({
         success: false,
         message: "please give all required fields",
       });
     }
-    const exist = await Employee.findOne({ where: { email } });
+    const exist = await Employee.findOne({ where: { email, companyId } });
     if (exist) {
       return res.status(400).json({
         success: false,
@@ -22,6 +23,7 @@ export const createEMP = async (req, res) => {
       position,
       email,
       salary,
+      companyId,
     });
 
     res.status(201).json({
@@ -47,20 +49,15 @@ export const AllEMP = async (req, res) => {
     } = req.query;
 
     const offset = (page - 1) * limit;
-    //! why are we doing this
-    //! This is done to calculate the starting point for the records to fetch
-    //! For example, if page = 2 and limit = 5, we want to skip the first 5 records
-    //! so we set offset = 5
-
-    const filterBOX = {};
+    const companyId = req.user?.companyId;
+    const filterBOX = { companyId };
     if (name) filterBOX.name = { [Op.like]: `%${name}%` };
     if (department) filterBOX.department = department;
     if (position) filterBOX.position = position;
 
-    //!https://sequelize.org/docs/v7/querying/operators/
     const { count, rows: employees } = await Employee.findAndCountAll({
       where: filterBOX,
-      order: [[sortBy, order.toUpperCase()]], //* SARE SAME SAME HOJAYEGE
+      order: [[sortBy, order.toUpperCase()]],
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
@@ -84,7 +81,10 @@ export const AllEMP = async (req, res) => {
 
 export const findEMPbyID = async (req, res) => {
   try {
-    const employee = await Employee.findByPk(req.params.id);
+    const companyId = req.user?.companyId;
+    const employee = await Employee.findOne({
+      where: { id: req.params.id, companyId },
+    });
     if (!employee)
       return res
         .status(404)
@@ -101,8 +101,9 @@ export const findEMPbyID = async (req, res) => {
 
 export const updateEMP = async (req, res) => {
   try {
+    const companyId = req.user?.companyId;
     const [updated] = await Employee.update(req.body, {
-      where: { id: req.params.id },
+      where: { id: req.params.id, companyId },
     });
 
     if (!updated) {
@@ -111,7 +112,9 @@ export const updateEMP = async (req, res) => {
         message: "employee not found",
       });
     }
-    const employee = await Employee.findByPk(req.params.id);
+    const employee = await Employee.findOne({
+      where: { id: req.params.id, companyId },
+    });
 
     res.status(200).json({
       success: true,
@@ -128,8 +131,9 @@ export const updateEMP = async (req, res) => {
 
 export const deleteEMP = async (req, res) => {
   try {
+    const companyId = req.user?.companyId;
     const deleted = await Employee.destroy({
-      where: { id: req.params.id },
+      where: { id: req.params.id, companyId },
     });
 
     if (!deleted) {
@@ -153,9 +157,10 @@ export const deleteEMP = async (req, res) => {
 
 export const filterOpts = async (req, res) => {
   try {
-  
+    const companyId = req.user?.companyId;
     const employees = await Employee.findAll({
-      attributes : ["department", "position"],
+      attributes: ["department", "position"],
+      where: { companyId },
     });
     const departments = [
       ...new Set(employees.map((emp) => emp.department).filter(Boolean)),
@@ -163,7 +168,6 @@ export const filterOpts = async (req, res) => {
     const positions = [
       ...new Set(employees.map((emp) => emp.position).filter(Boolean)),
     ];
-    //!unique departments and positions NOT UNDEFINED OR NULL 
     res.status(200).json({
       success: true,
       departments,

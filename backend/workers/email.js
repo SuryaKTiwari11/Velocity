@@ -5,31 +5,25 @@ import { emailService } from "../helper/email.js";
 
 const connection = createRedisConnection();
 
-export const emailWorker = new Worker(
-  "email",
-  async (job) => {
-    console.log(`Processing: ${job.name} (ID: ${job.id})`);
-
-    switch (job.name) {
-      case JOBS.OTP:
-        return await sendOTP(job);
-      case JOBS.RESET:
-        return await sendReset(job);
-      default:
-        throw new Error(`Unknown job: ${job.name}`);
+// Email job processors
+const sendInvite = async (job) => {
+  const { email, inviteToken, companyId } = job.data;
+  try {
+    const result = await emailService(email, inviteToken, companyId, "invite");
+    if (result.success) {
+      console.log(`Invite sent to ${email}`);
+      return { success: true, messageId: result.messageId };
+    } else {
+      throw new Error(result.error || "Invite send failed");
     }
-  },
-  {
-    connection,
-    concurrency: 5,
-    removeOnComplete: 50,
-    removeOnFail: 100,
+  } catch (error) {
+    console.error(`Invite failed for ${email}:`, error);
+    throw error;
   }
-);
+};
 
 const sendOTP = async (job) => {
   const { email, otp, name } = job.data;
-
   try {
     const result = await emailService(email, otp, name, "verification");
     if (result.success) {
@@ -46,10 +40,8 @@ const sendOTP = async (job) => {
 
 const sendReset = async (job) => {
   const { email, otp, name } = job.data;
-
   try {
     const result = await emailService(email, otp, name, "passReset");
-
     if (result.success) {
       console.log(`Reset sent to ${email}`);
       return { success: true, messageId: result.messageId };
@@ -62,9 +54,28 @@ const sendReset = async (job) => {
   }
 };
 
-
-
-// Events
+export const emailWorker = new Worker(
+  "email",
+  async (job) => {
+    console.log(`Processing: ${job.name} (ID: ${job.id})`);
+    switch (job.name) {
+      case JOBS.OTP:
+        return await sendOTP(job);
+      case JOBS.RESET:
+        return await sendReset(job);
+      case JOBS.INVITE:
+        return await sendInvite(job);
+      default:
+        throw new Error(`Unknown job: ${job.name}`);
+    }
+  },
+  {
+    connection,
+    concurrency: 5,
+    removeOnComplete: 50,
+    removeOnFail: 100,
+  }
+);
 emailWorker.on("completed", (job, result) => {
   console.log(`Job ${job.id} completed:`, result);
 });

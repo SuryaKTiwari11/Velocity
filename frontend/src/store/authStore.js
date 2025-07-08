@@ -17,6 +17,7 @@ const useAuthStore = create(
           const response = await authApi.login(credentials);
           const { user } = response.data;
           const isAdmin = user && user.isAdmin === true;
+          const isSuperAdmin = user && user.isSuperAdmin === true;
 
           set({
             user,
@@ -25,7 +26,6 @@ const useAuthStore = create(
             isLoading: false,
           });
 
-          
           try {
             const premiumResponse = await paymentApi.status();
             const { isPremium } = premiumResponse.data;
@@ -33,6 +33,15 @@ const useAuthStore = create(
           } catch (error) {
             console.log("Could not check premium status:", error);
             set({ isPremium: false });
+          }
+
+          // Role-based redirect
+          if (isSuperAdmin) {
+            window.location.href = "/super-admin";
+          } else if (isAdmin) {
+            window.location.href = "/hradmin";
+          } else {
+            window.location.href = "/profile";
           }
 
           return { success: true };
@@ -148,7 +157,7 @@ const useAuthStore = create(
             isLoading: false,
           });
 
-         
+          // Check premium status
           try {
             const premiumResponse = await paymentApi.status();
             const { isPremium } = premiumResponse.data;
@@ -156,6 +165,20 @@ const useAuthStore = create(
           } catch (error) {
             console.log("Could not check premium status:", error);
             set({ isPremium: false });
+          }
+
+          // Check if user needs onboarding
+          if (!isAdmin && user.onboardingStatus !== "approved") {
+            // Redirect to onboarding if not on onboarding page
+            const currentPath = window.location.pathname;
+            if (
+              !currentPath.includes("/onboarding") &&
+              !currentPath.includes("/login") &&
+              !currentPath.includes("/signup") &&
+              !currentPath.includes("/verify-otp")
+            ) {
+              window.location.href = "/onboarding";
+            }
           }
 
           return true;
@@ -171,7 +194,6 @@ const useAuthStore = create(
         }
       },
 
-      
       checkPremium: async () => {
         try {
           const response = await paymentApi.status();
@@ -185,7 +207,6 @@ const useAuthStore = create(
         }
       },
 
-    
       setPremium: (isPremium) => set({ isPremium }),
     }),
     {

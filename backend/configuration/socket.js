@@ -1,6 +1,16 @@
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 
 let io;
+
+//! Emit an event to all admins in the "admin_room" for a specific company
+const emitToAdmins = (event, data, companyId, socketId = null) => {
+  io.to(`admin_room_${companyId}`).emit(event, {
+    ...data,
+    socketId: socketId,
+    timestamp: new Date(),
+  });
+};
 
 export const initSocket = (server) => {
   io = new Server(server, {
@@ -13,16 +23,49 @@ export const initSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(" Socket connected:", socket.id);
+    socket.on("join", ({ userId, token, isAdmin, companyId }) => {
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          socket.userId = decoded.userId;
+          socket.companyId = decoded.companyId;
+        } catch {
+          throw new Error("Invalid jwt token");
+        }
+      } else {
+        socket.userId = userId;
+        socket.companyId = companyId;
+      }
 
-   
-    socket.on("join", (userId) => {
-      socket.join(userId);
-      console.log(` User ${userId} joined `);
+      if (socket.userId && socket.companyId) {
+        socket.join(`user_${socket.companyId}_${socket.userId}`);
+        socket.join(`company_${socket.companyId}`);
+        if (isAdmin) socket.join(`admin_room_${socket.companyId}`);
+        emitToAdmins(
+          "user_online",
+          { userId: socket.userId },
+          socket.companyId,
+          socket.id
+        );
+      }
+    });
+
+    //! ATTENDANCE EVENTS
+    socket.on("attendance_update", (data) => {
+      if (socket.companyId) {
+        emitToAdmins("attendance_update", data, socket.companyId, socket.id);
+      }
     });
 
     socket.on("disconnect", () => {
-      console.log(" Socket disconnected:", socket.id);
+      if (socket.userId && socket.companyId) {
+        emitToAdmins(
+          "user_offline",
+          { userId: socket.userId },
+          socket.companyId,
+          socket.id
+        );
+      }
     });
   });
 

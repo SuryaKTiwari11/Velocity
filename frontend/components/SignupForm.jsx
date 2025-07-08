@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../src/store/authStore";
 import { authApi } from "../src/front2backconnect/api.js";
 import SSO from "./SSO";
 
 const SignupForm = () => {
   const navigate = useNavigate();
-  const { signup } = useAuthStore();
-  
+
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
+    companyName: "",
+    companyCode: "",
+    city: "",
+    adminName: "",
+    adminEmail: "",
+    adminPassword: "",
     confirmPassword: "",
   });
   const [status, setStatus] = useState({ message: "", isError: false });
@@ -28,44 +29,39 @@ const SignupForm = () => {
     e.preventDefault();
     setStatus({ message: "", isError: false });
     setIsLoading(true);
-      try {
-      if (formData.password !== formData.confirmPassword) {
+
+    try {
+      if (formData.adminPassword !== formData.confirmPassword) {
         throw new Error("Passwords do not match");
       }
-      
-      const userData = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      };      
-      const result = await signup(userData);
-      if (!result.success) {
-        throw new Error("Signup failed. Please try again.");
+
+      const payload = {
+        companyName: formData.companyName,
+        companyCode: formData.companyCode,
+        city: formData.city,
+        adminName: formData.adminName,
+        adminEmail: formData.adminEmail,
+        adminPassword: formData.adminPassword,
+      };
+
+      const res = await authApi.companyRegister(payload);
+      if (!res.data?.success) {
+        throw new Error(res.data?.message || "Signup failed. Please try again.");
       }
-      setStatus({ message: "Account created. Preparing verification...", isError: false });
-      
-      const otpResponse = await authApi.resendOTP(userData.email);
-      if (!otpResponse.data.success) {
-        throw new Error("Account created, but couldn't send verification email. Try again later.");
-      }
-      
-    
-      const previewUrl = otpResponse.data.previewUrl || null;    
-      const searchParams = new URLSearchParams();
-      searchParams.set("mode", "email");
-      searchParams.set("email", userData.email);
-      if (previewUrl) {
-        searchParams.set("previewUrl", previewUrl);
-      }
-      
-      const searchString = searchParams.toString();
-      
-      setTimeout(() => {
-        navigate(`/verify-otp?${searchString}`);
-      }, 1000);
-      
+
+      setStatus({
+        message: "Company registered! Please check your email for verification.",
+        isError: false,
+      });
+      setTimeout(() => navigate("/login"), 1500);
     } catch (error) {
-      setStatus({ message: error.message || "An unexpected error occurred", isError: true });
+      setStatus({
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "An unexpected error occurred",
+        isError: true,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -74,72 +70,103 @@ const SignupForm = () => {
   return (
     <div className="bg-black min-h-screen flex items-center justify-center">
       <div className="p-4 bg-white max-w-md mx-auto mt-10 w-full">
-        <h1 className="text-2xl font-bold mb-4">Create Account</h1>
-        
+        <h1 className="text-2xl font-bold mb-4">Register Your Company</h1>
+        <div className="mb-2 text-sm text-gray-700">
+          This form is for <b>company registration</b> only. If you are joining an existing company, please use your invite link or{" "}
+          <a href="/invite-signup" className="text-blue-600 underline">
+            invite signup
+          </a>.
+        </div>
+
         {status.message && (
-          <div 
+          <div
             className={`p-2 mb-4 ${
-              status.isError ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+              status.isError
+                ? "bg-red-100 text-red-700"
+                : "bg-green-100 text-green-700"
             }`}
           >
             {status.message}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="companyName"
+            value={formData.companyName}
             onChange={handleChange}
             className="border p-2 w-full mb-3"
-            placeholder="Full Name"
+            placeholder="Company Name"
             required
           />
-          
+          <input
+            type="text"
+            name="companyCode"
+            value={formData.companyCode}
+            onChange={handleChange}
+            className="border p-2 w-full mb-3"
+            placeholder="Company Code (unique)"
+            required
+          />
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            className="border p-2 w-full mb-3"
+            placeholder="City"
+            required
+          />
+          <input
+            type="text"
+            name="adminName"
+            value={formData.adminName}
+            onChange={handleChange}
+            className="border p-2 w-full mb-3"
+            placeholder="Admin Full Name"
+            required
+          />
           <input
             type="email"
-            name="email"
-            value={formData.email}
+            name="adminEmail"
+            value={formData.adminEmail}
             onChange={handleChange}
             className="border p-2 w-full mb-3"
-            placeholder="Email"
+            placeholder="Admin Email"
             required
           />
-          
           <input
             type="password"
-            name="password"
-            value={formData.password}
+            name="adminPassword"
+            value={formData.adminPassword}
             onChange={handleChange}
             className="border p-2 w-full mb-3"
-            placeholder="Password"
+            placeholder="Admin Password"
             required
           />
-          
           <input
             type="password"
             name="confirmPassword"
             value={formData.confirmPassword}
             onChange={handleChange}
-            className="border p-2 w-full mb-4"
+            className="border p-2 w-full mb-3"
             placeholder="Confirm Password"
             required
           />
-          
           <button className="bg-blue-500 text-white p-2 w-full" disabled={isLoading}>
             {isLoading ? "Signing up..." : "Sign Up"}
           </button>
         </form>
-        
+
         <SSO />
-        
+
         <div className="mt-4 text-center">
           <p>
             Already have an account?{" "}
-            <button 
+            <button
               type="button"
-              onClick={() => navigate("/login")} 
+              onClick={() => navigate("/login")}
               className="text-red-500 "
             >
               Log In

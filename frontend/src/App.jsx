@@ -1,5 +1,17 @@
-import React, { useEffect, Suspense } from "react";
+import CompanyAdminPanel from "../components/CompanyAdminPanel";
+        <Route path="/company-admin" element={
+          <ProtectedRoute requireAdmin={true}>
+            <CompanyAdminPanel />
+          </ProtectedRoute>
+        } />
+import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Components
+import Navbar from "../components/Navbar";
+import LandingPage from "../components/LandingPage";
+import ProfilePage from "../components/ProfilePage";
+import HRadminPage from "../components/HRadminPage";
 import InputForm from "../components/InputForm";
 import EditEmployee from "../components/EditEmployee";
 import SignupForm from "../components/SignupForm";
@@ -8,14 +20,24 @@ import ForgotPasswordForm from "../components/ForgotPasswordForm";
 import ResetPasswordForm from "../components/ResetPasswordForm";
 import VerifyOTPForm from "../components/VerifyOTPForm";
 import DocManager from "../components/Doc/DocManager";
-import useAuthStore from "./store/authStore";
-import ProfilePage from "../components/ProfilePage";
-import LandingPage from "../components/LandingPage";
-import HRadminPage from "../components/HRadminPage";
-import Navbar from "../components/Navbar";
-import NotFound from "../components/NotFound";
-import ProtectedRoute from "../components/ProtectedRoute";
+import AnalyticsDashboard from "../components/Analytics/AnalyticsDashboard";
+import ChatPage from "../components/chat/ChatPage";
+import CallPage from "../components/chat/CallPage";
+import OnboardingPage from "../components/onboarding/OnboardingPage";
+import AdminVerificationPage from "../components/onboarding/AdminVerificationPage";
+import InviteSignupForm from "../components/InviteSignupForm";
+import SuperAdminDashboard from "../components/SuperAdminDashboard";
 import PremiumPayment from "../components/PremiumPayment";
+import ZoomMeeting from "../components/ZoomMeeting";
+import NotFound from "../components/NotFound";
+
+// Pages
+import AttendancePage from "./pages/AttendancePage";
+import AdminAttendancePage from "./pages/AdminAttendancePage";
+
+// Store & Routes
+import useAuthStore from "./store/authStore";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const App = () => {
   const { checkAuth } = useAuthStore();
@@ -26,26 +48,94 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Navbar />      <Routes>
+      <Navbar />
+      <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/hradmin" element={<HRadminPage />} />
-
-        <Route path="/documents" element={
-          <ProtectedRoute requirePremium={true}>
-            <DocManager />
-          </ProtectedRoute>
-        } />
-        <Route path="/add" element={<InputForm />} />
-        <Route path="/edit/:id" element={<EditEmployee />} />
         <Route path="/signup" element={<SignupForm />} />
+        <Route path="/invite-signup" element={<InviteSignupForm />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/login/success" element={<LoginForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordForm />} />
         <Route path="/verify-otp" element={<VerifyOTPForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
+        <Route path="/hradmin" element={<HRadminPage />} />
         <Route path="/premium-payment" element={<PremiumPayment onSuccess={() => window.location.reload()} />} />
-        <Route path ="*" element={<NotFound />} />
+
+        {/* Protected Routes */}
+        <Route path="/profile" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/documents" element={
+          <ProtectedRoute requirePremium={true}>
+            <DocManager />
+          </ProtectedRoute>
+        } />
+        <Route path="/add" element={
+          <ProtectedRoute>
+            <InputForm />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit/:id" element={
+          <ProtectedRoute>
+            <EditEmployee />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AnalyticsDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/attendance" element={
+          <ProtectedRoute>
+            <AttendancePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/attendance" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminAttendancePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/meeting" element={
+          <ProtectedRoute requirePremium={true}>
+            <ZoomMeeting />
+          </ProtectedRoute>
+        } />
+        <Route path="/chat" element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/chat/:id" element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/call/:id" element={
+          <ProtectedRoute>
+            <CallPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/onboarding" element={
+          <ProtectedRoute requireOnboarding={false}>
+            <OnboardingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/verifications" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminVerificationPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/super-admin" element={
+          <ProtectedRoute>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Not Found */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

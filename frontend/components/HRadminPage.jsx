@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { employeeApi as empApi, otpApi } from "../src/front2backconnect/api";
 import useAuthStore from "../src/store/authStore";
+import ActivityLogs from "./ActivityLogs";
+import ErrorBoundary from "./ErrorBoundary";
 
 const HRadminPage = () => {
   const [emps, setEmps] = useState([]);
@@ -29,7 +31,7 @@ const HRadminPage = () => {
   const nav = useNavigate();
 
   const [pg, setPg] = useState(1);
-  const [lim, setLim] = useState(5);
+  const lim = 5; // Fixed limit per page
   const [tot, setTot] = useState(0);
   const [srt, setSrt] = useState('name');
   const [ord, setOrd] = useState('asc');
@@ -327,6 +329,13 @@ const HRadminPage = () => {
             </div>
           </>
         )}
+        
+        {/* Activity Logs Section */}
+        <div className="mt-12">
+          <ErrorBoundary showDetails={true}>
+            <ActivityLogs />
+          </ErrorBoundary>
+        </div>
       </div>
     </div>
   );

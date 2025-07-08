@@ -1,8 +1,11 @@
-import { User, Employee } from "../model/model.js";
+import { User, Employee, Company } from "../model/model.js";
 import bcrypt from "bcryptjs";
 import { genToken } from "../helper/genToken.js";
 import jwt from "jsonwebtoken";
-import { sendOTP, cleanupOldOTPs } from "../helper/otpService.js";
+import { sendOTP } from "../helper/otpService.js";
+import { getClientIP, logAction, logLogin } from "../services/auditServices.js";
+import * as AttendanceService from "../services/attendanceService.js";
+import { where } from "sequelize";
 
 const userRes = (usr) => ({
   id: usr.id,
@@ -11,13 +14,16 @@ const userRes = (usr) => ({
   isAdmin: usr.isAdmin,
   isVerified: usr.isVerified,
   profilePicture: usr.profilePicture,
-  createdAt: usr.createdAt,
+  onboardingStatus: usr.onboardingStatus,
+  isTrainingVideoDone: usr.isTrainingVideoDone,
+  isDocumentSubmitted: usr.isDocumentSubmitted,
+  isDocumentsApproved: usr.isDocumentsApproved,
+  videoProgress: usr.videoProgress,
 });
 
 export const signUp = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-
+    const { name, email, password, city } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ success: false, err: "missing creds" });
 
@@ -34,6 +40,7 @@ export const signUp = async (req, res) => {
       email,
       password: hashed,
       isVerified: false,
+      city: city || "delhi",
     });
 
     Employee.create({
@@ -42,15 +49,13 @@ export const signUp = async (req, res) => {
       position: "not assigned yet",
       department: "not assigned yet",
       salary: 0,
-    }).catch((err) => {
-      console.error("Emp record err:", err);
-    });
+    }).catch(() => {});
 
     const token = genToken(user.id, res);
 
-    sendOTP(email).catch((err) => {
-      console.error("OTP err:", err);
-    });
+    sendOTP(email).catch(() => {});
+
+    await logAction(user.id, "CREATE", "User", user.id, null, user, req);
 
     res.status(201).json({
       success: true,
@@ -66,21 +71,34 @@ export const signUp = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const { email, password, companyCode } = req.body;
+    if (!email || !password || !companyCode) {
       return res
         .status(400)
         .json({ success: false, err: "need email and pass" });
     }
+    const company = await Company.findOne({
+      where: {
+        companyCode: companyCode.toLowerCase(),
+      },
+    });
+    if (!company) {
+      return res
+        .status(400)
+        .json({ success: false, err: "invalid company code" });
+    }
 
     const usr = await User.findOne({ where: { email } });
-    if (!usr)
+    if (!usr) {
+      await logLogin(email, false, null, req, "User not found");
       return res.status(404).json({ success: false, err: "no user found" });
+    }
 
     const match = await bcrypt.compare(password, usr.password);
-    if (!match)
+    if (!match) {
+      await logLogin(email, false, usr.id, req, "Wrong password");
       return res.status(401).json({ success: false, err: "wrong password" });
+    }
 
     if (!usr.isVerified && !usr.googleId && !usr.githubId) {
       return res.status(403).json({
@@ -91,12 +109,22 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = genToken(usr.id, res);
+    const token = genToken(usr.id, company.companyCode, company.companyId, res);
+
+    await logLogin(email, true, usr.id, req);
+
+    try {
+      const sessionId = req.sessionID || token;
+      const ipAddress = getClientIP(req);
+      await AttendanceService.autoClockIn(usr.id, sessionId, ipAddress);
+    } catch {}
 
     res.status(200).json({
       success: true,
       msg: "login ok",
       user: userRes(usr),
+      companyCode: company.companyCode,
+      companyId: company.companyId,
       token,
     });
   } catch (err) {
@@ -106,6 +134,36 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
+    const token = req.cookies?.jwt;
+    let userId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.userID;
+        await logAction(
+          decoded.userID,
+          "LOGOUT",
+          "User",
+          decoded.userID,
+          null,
+          null,
+          req
+        );
+      } catch {}
+    }
+
+    if (!userId && req.user) {
+      userId = req.user.id;
+    }
+
+    if (userId) {
+      try {
+        const sessionId = req.sessionID || token;
+        await AttendanceService.autoClockOut(userId, sessionId);
+      } catch {}
+    }
+
     res.cookie("jwt", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -124,12 +182,7 @@ export const logout = async (req, res) => {
 
 export const curUser = async (req, res) => {
   try {
-    let token =
-      req.cookies?.jwt ||
-      (req.headers.authorization?.startsWith("Bearer ")
-        ? req.headers.authorization.split(" ")[1]
-        : req.headers.authorization);
-
+    const token = req.cookies?.jwt;
     if (!token)
       return res.status(401).json({ success: false, msg: "no token found" });
 
@@ -157,7 +210,6 @@ export const curUser = async (req, res) => {
       employeeInfo: empInfo,
     });
   } catch (err) {
-    console.error("curUser err:", err);
     return res.status(401).json({ success: false, err: "bad token" });
   }
 };
