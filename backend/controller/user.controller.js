@@ -44,14 +44,13 @@ export const searchUsers = async (req, res) => {
       attributes: ["id", "name", "email", "companyId"],
       where: {
         companyId,
-        id: { [Op.ne]: currentUserId }, // Exclude current user
+        id: { [Op.ne]: currentUserId }, //! Exclude current user
         [Op.or]: [
           { name: { [Op.iLike]: `%${searchTerm}%` } },
           { email: { [Op.iLike]: `%${searchTerm}%` } },
         ],
       },
-      limit: 10, // Limit results to prevent overwhelming UI
-    });
+      limit: 10,   });
 
     res.json({ users });
   } catch (error) {

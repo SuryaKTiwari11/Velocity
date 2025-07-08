@@ -10,19 +10,19 @@ const Navbar = () => {
     navigate('/');
   };
   return (
-    <nav className="bg-blue-500 p-2 fixed top-0 left-0 right-0 z-50 navbar">
+    <nav className="bg-blue-500 p-2  navbar">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Link to="/">
             <h1 className="text-white font-bold">EMP Management</h1>
           </Link>
-          {/* Always show registration/invite links for clarity */}
-          <Link to="/signup">
-            <button className="bg-white text-blue-700 px-2 py-1 text-sm rounded">Company Registration</button>
-          </Link>
-          <Link to="/invite-signup">
-            <button className="bg-white text-blue-700 px-2 py-1 text-sm rounded">Invite Signup</button>
-          </Link>
+          {/* Company Registration only visible if not logged in */}
+          {!isAuthenticated && (
+            <Link to="/signup">
+              <button className="bg-white text-blue-700 px-2 py-1 text-sm rounded">Company Registration</button>
+            </Link>
+          )}
+          {/* Invite Signup removed: Admins should use HR Dashboard to invite users */}
         </div>
         {isAuthenticated && (
           <div className="flex gap-2 items-center">

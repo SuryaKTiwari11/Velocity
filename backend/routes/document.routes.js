@@ -9,18 +9,14 @@ import {
   downloadDocument,
   searchDocuments,
   deleteDocument,
+  
 } from "../controller/document.controller.js";
-
 const router = express.Router();
-
-
-
 router.post(
   "/upload",
   protect,
   checkPremium,
-  upload.single("document"),
-  uploadDocument
+  upload.single("document"),  uploadDocument
 );
 
 router.get("/user/:userId", protect, checkPremium, listDocuments);

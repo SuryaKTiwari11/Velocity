@@ -1,7 +1,5 @@
 import { AuditLog, LoginHistory, User } from "../model/model.js";
-import { Op } from "sequelize";
 
-// Get audit logs - matches frontend: getLogs: (params) => api.get("/audit/logs", { params })
 export const getLogs = async (req, res) => {
   try {
     const { page = 1, limit = 20, action, tableName, userId } = req.query;
@@ -39,8 +37,6 @@ export const getLogs = async (req, res) => {
     });
   }
 };
-
-// Get login history - matches frontend: getLoginHistory: (params) => api.get("/audit/login-history", { params })
 export const getLoginHistory = async (req, res) => {
   try {
     const { page = 1, limit = 20, userId, success } = req.query;
@@ -82,8 +78,6 @@ export const getLoginHistory = async (req, res) => {
     });
   }
 };
-
-// Get audit stats - matches frontend: getStats: (params) => api.get("/audit/stats", { params })
 export const getStats = async (req, res) => {
   try {
     const totalLogs = await AuditLog.count();

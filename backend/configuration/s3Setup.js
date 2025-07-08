@@ -18,11 +18,13 @@ const BUCKET_NAME = process.env.S3_BUCKET_NAME || "employee-documents";
 
 async function setupS3() {
   try {
-    await s3Client.send(new HeadBucketCommand({ Bucket: BUCKET_NAME })); 
+    await s3Client.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
+    console.log("Bucket exists:", BUCKET_NAME);
     //!this means that the bucket already exists
   } catch (error) {
     if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
       await s3Client.send(new CreateBucketCommand({ Bucket: BUCKET_NAME }));
+      console.log("Bucket created:", BUCKET_NAME);
      //!this means the bucket does not exist, so we create it
     } else {
       console.error("S3 setup failed:", error.message);

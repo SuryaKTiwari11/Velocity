@@ -4,35 +4,50 @@
   const PAGE_SIZE = 20;
 
   const Section = ({ title, data, loading, error, renderRow }) => (
-    <div style={{ marginBottom: 32 }}>
-      <h2>{title}</h2>
+    <div className="mb-8">
+      <h2 className="text-xl font-semibold mb-4">{title}</h2>
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div style={{ color: "red" }}>{error}</div>
+        <div className="text-red-600">{error}</div>
       ) : (
-        <table border="1" cellPadding={6}>
-          <thead>
-            <tr>
-              {data.length > 0 &&
-                Object.keys(data[0]).map((k) => <th key={k}>{k}</th>)}
-              {renderRow && <th>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row, i) =>
-              renderRow ? (
-                renderRow(row, i)
-              ) : (
-                <tr key={row.id || i}>
-                  {Object.values(row).map((v, j) => (
-                    <td key={j}>{String(v)}</td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded shadow">
+            <thead>
+              <tr>
+                {data.length > 0 &&
+                  Object.keys(data[0]).map((k) => (
+                    <th
+                      key={k}
+                      className="bg-gray-100 border-b border-gray-200 px-4 py-2 text-left font-medium"
+                    >
+                      {k}
+                    </th>
                   ))}
-                </tr>
-              )
-            )}
-          </tbody>
-        </table>
+                {renderRow && (
+                  <th className="bg-gray-100 border-b border-gray-200 px-4 py-2 text-left font-medium">
+                    Actions
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) =>
+                renderRow ? (
+                  renderRow(row, i)
+                ) : (
+                  <tr key={row.id || i} className="hover:bg-gray-50">
+                    {Object.values(row).map((v, j) => (
+                      <td key={j} className="border-b border-gray-200 px-4 py-2">
+                        {String(v)}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
@@ -73,7 +88,6 @@
         });
     }
 
-    // Super admin: delete company (call backend, refresh list)
     async function handleDeleteCompany(companyId) {
       if (!window.confirm("Delete this company? This cannot be undone.")) return;
       setLoading((l) => ({ ...l, companies: true }));
@@ -92,27 +106,29 @@
     }
 
     return (
-      <div style={{ padding: 32 }}>
-        <h1>Super Admin Dashboard</h1>
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <h1 className="text-3xl font-bold mb-10">Super Admin Dashboard</h1>
         <Section
           title="Companies"
           data={companies}
           loading={loading.companies}
           error={error.companies}
           renderRow={(row, i) => (
-            <tr key={row.id || i}>
+            <tr key={row.id || i} className="hover:bg-gray-50">
               {Object.values(row).map((v, j) => (
-                <td key={j}>{String(v)}</td>
+                <td key={j} className="border-b border-gray-200 px-4 py-2">
+                  {String(v)}
+                </td>
               ))}
-              <td>
+              <td className="border-b border-gray-200 px-4 py-2 whitespace-nowrap">
                 <button
-                  style={{ color: "blue" }}
+                  className="text-blue-600 hover:underline mr-3"
                   onClick={() => alert(JSON.stringify(row, null, 2))}
                 >
                   View
                 </button>
                 <button
-                  style={{ color: "red", marginLeft: 8 }}
+                  className="text-red-600 hover:underline"
                   onClick={() => handleDeleteCompany(row.id)}
                 >
                   Delete

@@ -73,7 +73,7 @@ const createS3DocumentModel = (sequelize) => {
         comment: "ID of the employee who owns this document",
       },
       status: {
-        type: DataTypes.ENUM("pending", "approved", "rejected"),
+        type: DataTypes.ENUM("pending", "approved", "rejected",'uploaded'),
         defaultValue: "pending",
       },
       uploadedAt: {
@@ -93,6 +93,11 @@ const createS3DocumentModel = (sequelize) => {
       reviewedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      companyId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        comment: "ID of the company that owns this document",
       },
     },
     {

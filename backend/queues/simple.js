@@ -10,8 +10,8 @@ export const JOBS = {
   NOTIFY: "notify",
   CLEANUP: "cleanup",
   SESSION: "session",
-  DOCUMENT: "process-document", // Simple document processing
-  INVITE: "invite", // New job for invite emails
+  DOCUMENT: "process-document", 
+  INVITE: "invite", 
 };
 
 export const emailQ = new Queue("email", {
@@ -34,7 +34,7 @@ export const cleanQ = new Queue("clean", {
   },
 });
 
-// Simple document processing queue - Perfect for student project
+
 export const documentQueue = new Queue("document", {
   connection,
   defaultJobOptions: {

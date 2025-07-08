@@ -38,7 +38,8 @@ export const protect = async (req, res, next) => {
         needsVerification: true,
       });
     }
-      user.companyId = decoded.companyId;
+    // Always set companyId from JWT if present, else fallback to user.companyId from DB
+    user.companyId = decoded.companyId || user.companyId;
     req.user = user;
     next();
   } catch (error) {
@@ -66,12 +67,22 @@ export const superAdminOnly = (req, res, next) => {
   const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
   const superAdminGoogleId = process.env.SUPER_ADMIN_GOOGLE_ID;
   const superAdminHash = process.env.SUPER_ADMIN_HASH;
+  // Allow super admin if email and googleId match, ignore hash if using Google SSO
   if (
     req.user &&
     req.user.email === superAdminEmail &&
     req.user.googleId &&
-    req.user.googleId.toString() === superAdminGoogleId &&
-    (superAdminHash ? req.user.hash === superAdminHash : true)
+    req.user.googleId.toString() === superAdminGoogleId
+  ) {
+    req.user.isSuperAdmin = true;
+    return next();
+  }
+  // Fallback: allow hash check for non-Google SSO (legacy/local super admin)
+  if (
+    req.user &&
+    req.user.email === superAdminEmail &&
+    superAdminHash &&
+    req.user.hash === superAdminHash
   ) {
     req.user.isSuperAdmin = true;
     return next();
@@ -84,7 +95,8 @@ export const superAdminOnly = (req, res, next) => {
 
 // Middleware: Require onboarding complete (unless admin)
 export const requireOnboardingComplete = (req, res, next) => {
-  if (req.user && req.user.isAdmin) return next();
+  // Allow admins and super admins to bypass onboarding check
+  if (req.user && (req.user.isAdmin || req.user.isSuperAdmin)) return next();
   if (!req.user || req.user.onboardingStatus !== "approved") {
     return res.status(403).json({
       success: false,

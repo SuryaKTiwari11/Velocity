@@ -8,7 +8,10 @@ import {
   updateFileStatus,
   healthCheck,
 } from "../controller/s3Document.controller.js";
-import { protect, requireOnboardingComplete } from "../middleware/auth.middleware.js";
+import {
+  protect,
+  requireOnboardingComplete,
+} from "../middleware/auth.middleware.js";
 
 import { upload } from "../configuration/s3Config.js"; // Import the multer upload middleware
 
@@ -25,7 +28,8 @@ router.get("/:id/download", protect, downloadFile);
 
 // These require full onboarding completion
 router.get("/employee/:employeeId", requireOnboardingComplete, getFiles);
-router.delete("/:id", requireOnboardingComplete, deleteFile);
+// Allow admins and onboarding users to delete documents (no onboarding check)
+router.delete("/:id", protect, deleteFile);
 router.get("/all", requireOnboardingComplete, getAllFiles);
 router.put("/:id/status", requireOnboardingComplete, updateFileStatus);
 

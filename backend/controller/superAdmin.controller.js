@@ -1,6 +1,6 @@
 import { Company, User, Payment, Invite } from "../model/model.js";
 
-// Delete a company (super admin only)
+
 export const deleteCompany = async (req, res) => {
   try {
     const { id } = req.params;
@@ -10,7 +10,7 @@ export const deleteCompany = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Company not found" });
     }
-    // Optionally: delete related users, employees, etc. (cascade)
+    //! TODO delete related users, employees, etc. (cascade)
     await company.destroy();
     res.json({ success: true, message: "Company deleted" });
   } catch (err) {
@@ -18,7 +18,6 @@ export const deleteCompany = async (req, res) => {
   }
 };
 
-// Get all companies (paginated)
 export const getAllCompanies = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -44,7 +43,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Get all payments (paginated)
 export const getAllPayments = async (req, res) => {
   try {
     if (!Payment) return res.json({ success: true, payments: [] });
@@ -58,7 +56,6 @@ export const getAllPayments = async (req, res) => {
   }
 };
 
-// Get all invites (paginated)
 export const getAllInvites = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

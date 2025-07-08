@@ -11,10 +11,8 @@ const generateOTP = () => {
 
 const sendOTP = async (email, purpose = "verification") => {
   try {
-    // First, find and invalidate any existing unverified OTPs for this email and purpose
     await OTP.update(
-      { verified: true }, // Mark as verified to invalidate them
-      {
+      { verified: true }, {
         where: {
           email,
           purpose,
@@ -23,7 +21,6 @@ const sendOTP = async (email, purpose = "verification") => {
       }
     );
 
-    // Then create a new OTP
     const otp = generateOTP();
     const hashOtp = await bcrypt.hash(otp, 8);
     await OTP.create({
@@ -59,7 +56,7 @@ const cleanupOldOTPs = async (email = null) => {
   try {
     const whereCondition = {
       [Op.or]: [
-        { expiresAt: { [Op.lt]: new Date() } }, // Expired OTPs
+        { expiresAt: { [Op.lt]: new Date() } }, 
         {
           verified: true,
           createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },

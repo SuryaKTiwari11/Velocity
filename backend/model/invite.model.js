@@ -18,7 +18,7 @@ const createInvite = (sequelize) => {
         allowNull: false,
       },
       inviteToken: {
-        type: DataTypes.STRING(100),
+        type: DataTypes.STRING(255),
         allowNull: false,
       },
       expiresAt: {

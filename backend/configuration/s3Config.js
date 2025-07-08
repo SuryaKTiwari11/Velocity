@@ -16,8 +16,8 @@ export const CORS_CONFIG = {
     {
       AllowedHeaders: ["*"],
       AllowedMethods: ["GET", "PUT", "POST", "DELETE"],
-      AllowedOrigins: ["http://localhost:3000", "http://localhost:5173"],
-      ExposeHeaders: ["ETag"],
+      AllowedOrigins: ["*"],
+      ExposeHeaders: [""],
     },
   ],
 };

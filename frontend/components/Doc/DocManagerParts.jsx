@@ -64,7 +64,7 @@ export function DocUpload({ docType, setDocType, setFile, uploading, handleUploa
           {message}
         </div>
       )}
-      {lastUploadedDocId && <ProgressWrapper documentId={lastUploadedDocId} userId={user.id} />}
+      {/* Progress bar removed as requested */}
     </div>
   );
 }

@@ -1,56 +1,3 @@
-// Razorpay Webhook Handler
-export const razorpayWebhookHandler = async (req, res) => {
-  try {
-    const signature = req.headers["x-razorpay-signature"];
-    const body = req.body;
-
-    // Webhook body is already parsed as JSON if using express.json(), else use express.raw()
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET)
-      .update(JSON.stringify(body))
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
-      return res.status(400).json({ error: "Invalid signature" });
-    }
-
-    const event = body;
-
-    switch (event.event) {
-      case "payment.captured":
-        await handlePaymentCaptured(event.payload.payment.entity);
-        break;
-      case "payment.failed":
-        // Optionally implement handlePaymentFailed
-        break;
-      case "subscription.charged":
-        // Optionally implement handleSubscriptionCharged
-        break;
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    console.error("Webhook error:", error);
-    res.status(500).json({ error: "Webhook processing failed" });
-  }
-};
-
-// Helper for payment captured
-async function handlePaymentCaptured(payment) {
-  // Find company by Razorpay order ID (assuming you store order_id in lastPaymentId or metadata)
-  // Adjust the query as per your schema
-  const company = await Company.findOne({ lastPaymentId: payment.order_id });
-  if (company) {
-    await Company.update(
-      {
-        status: "active",
-        lastPaymentDate: new Date(),
-        paymentStatus: "paid",
-      },
-      { where: { id: company.id } }
-    );
-  }
-}
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { User, Company, AuditLog } from "../model/model.js";
@@ -81,16 +28,14 @@ const PLANS = {
 
 export const createOrder = async (req, res) => {
   try {
-    // Default user-level premium plan (can be extended to accept plan param)
     const options = {
-      amount: 9900, // INR 99.00
+      amount: 9900,
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
     };
     const order = await rzp.orders.create(options);
     res.json(order);
   } catch (error) {
-    console.log("Payment error:", error);
     res.status(500).json({ error: "Payment failed" });
   }
 };
@@ -102,13 +47,11 @@ export const verifyPayment = async (req, res) => {
       razorpay_signature,
       user_id,
     } = req.body;
-
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSig = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
-
     if (expectedSig === razorpay_signature) {
       const expiry = new Date();
       expiry.setFullYear(expiry.getFullYear() + 1);
@@ -116,15 +59,11 @@ export const verifyPayment = async (req, res) => {
         { isPremium: true, premiumExpiresAt: expiry },
         { where: { id: user_id } }
       );
-      res.json({
-        success: true,
-        message: "You are now premium!",
-      });
+      res.json({ success: true, message: "You are now premium!" });
     } else {
       res.status(400).json({ error: "Payment verification failed" });
     }
   } catch (error) {
-    console.log("Verification error:", error);
     res.status(500).json({ error: "Verification failed" });
   }
 };
@@ -135,15 +74,12 @@ export const checkPremium = async (req, res) => {
     const user = await User.findByPk(userId, {
       attributes: ["isPremium", "premiumExpiresAt"],
     });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    if (!user) return res.status(404).json({ error: "User not found" });
     const isPremium =
       user.isPremium &&
       (!user.premiumExpiresAt || new Date() < new Date(user.premiumExpiresAt));
     res.json({ isPremium });
   } catch (error) {
-    console.log("Premium check error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -152,10 +88,12 @@ export const createCompanyOrder = async (req, res) => {
   try {
     const { plan } = req.body;
     if (!PLANS[plan]) {
-      return res.status(400).json({
-        error: "Invalid plan selected",
-        availablePlans: Object.keys(PLANS),
-      });
+      return res
+        .status(400)
+        .json({
+          error: "Invalid plan selected",
+          availablePlans: Object.keys(PLANS),
+        });
     }
     const options = {
       amount: PLANS[plan].price,
@@ -166,7 +104,6 @@ export const createCompanyOrder = async (req, res) => {
     const order = await rzp.orders.create(options);
     res.json(order);
   } catch (error) {
-    console.error("Company order error:", error);
     res.status(500).json({ error: "Order creation failed" });
   }
 };
@@ -177,33 +114,20 @@ export const verifyCompanyPayment = async (req, res) => {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } =
       req.body;
     const companyId = req.user.companyId;
-
-    if (!PLANS[plan]) {
+    if (!PLANS[plan])
       return res.status(400).json({ error: "Invalid plan selected" });
-    }
-
-    // Verify signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSig = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(body.toString())
       .digest("hex");
-
-    if (expectedSig !== razorpay_signature) {
+    if (expectedSig !== razorpay_signature)
       return res.status(400).json({ error: "Payment verification failed" });
-    }
-
-    // Fetch payment details
     const payment = await rzp.payments.fetch(razorpay_payment_id);
-    if (payment.status !== "captured") {
+    if (payment.status !== "captured")
       return res.status(402).json({ error: "Payment not captured" });
-    }
-
-    // Get current company plan for audit log
     const company = await Company.findByPk(companyId);
     const prevPlan = company?.plan || "none";
-
-    // Update company plan
     await Company.update(
       {
         plan,
@@ -215,8 +139,6 @@ export const verifyCompanyPayment = async (req, res) => {
       },
       { where: { id: companyId } }
     );
-
-    // Log the upgrade
     await AuditLog.create({
       companyId,
       userId: req.user.id,
@@ -228,7 +150,6 @@ export const verifyCompanyPayment = async (req, res) => {
         amount: payment.amount / 100,
       },
     });
-
     res.json({
       success: true,
       newPlan: plan,
@@ -237,9 +158,44 @@ export const verifyCompanyPayment = async (req, res) => {
       nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
   } catch (error) {
-    console.error("Company upgrade error:", error);
     res
       .status(500)
       .json({ error: "Plan upgrade failed", details: error.message });
   }
+};
+export const razorpayWebhookHandler = async (req, res) => {
+  const sig = req.headers["x-razorpay-signature"];
+  const body = JSON.stringify(req.body);
+  const expectedSig = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .update(body)
+    .digest("hex");
+  if (sig !== expectedSig) {
+    return res.status(400).json({ error: "Invalid signature" });
+  }
+  // Handle the webhook event
+  const event = req.body.event;
+  switch (event) {
+    case "payment.captured":
+      // Handle successful payment capture
+      break;
+    case "payment.failed":
+      // Handle failed payment
+      break;
+    default:
+      return res.status(400).json({ error: "Unknown event" });
+  }
+  res.json({ received: true });
+};
+export const getPlanDetails = (req, res) => {
+  const { plan } = req.query;
+  if (!PLANS[plan]) {
+    return res.status(400).json({ error: "Invalid plan" });
+  }
+  res.json({
+    plan,
+    price: PLANS[plan].price,
+    maxEmployees: PLANS[plan].maxEmployees,
+    features: PLANS[plan].features,
+  });
 };

@@ -1,49 +1,36 @@
-import { Attendance, User} from "../model/model.js";
+import { Attendance, User } from "../model/model.js";
 import { Op } from "sequelize";
-import { io } from "../index.js"; 
+import { io } from "../index.js";
 
 async function autoClockIn(userId, sessionId, ipAddress = null) {
   try {
     const today = new Date().toISOString().split("T")[0];
 
-    // Check if user already has ANY attendance record today (active or inactive)
-    const existingAttendance = await Attendance.findOne({
-      where: {
-        userId,
-        date: today,
-      },
+    const existing = await Attendance.findOne({
+      where: { userId, date: today },
     });
 
-    if (existingAttendance) {
-      if (existingAttendance.isActive) {
-      
-        await existingAttendance.update({ sessionId });
-        console.log(
-          `ℹ️ User ${userId} already clocked in today, updated session`
-        );
-        return existingAttendance;
+    if (existing) {
+      if (existing.isActive) {
+        await existing.update({ sessionId });
+        console.log(`User ${userId} already clocked in, session updated`);
+        return existing;
       } else {
-        // Reactivate existing record (user logging in again after logout)
         const clockInTime = new Date();
-        await existingAttendance.update({
+        await existing.update({
           clockInTime,
           isActive: true,
           sessionId,
-          clockOutTime: null, // Reset clock out
-          totalHours: 0, // Reset hours
+          clockOutTime: null,
+          totalHours: 0,
         });
-
-        // Emit real-time update via WebSocket
-        emitAttendanceUpdate(userId, "clock-in", existingAttendance);
-
-        console.log(
-          `✅ Reactivated attendance: User ${userId} at ${clockInTime}`
-        );
-        return existingAttendance;
+        emitAttendanceUpdate(userId, "clock-in", existing);
+        console.log(`User ${userId} clocked in again at ${clockInTime}`);
+        return existing;
       }
     }
 
-    // Create new attendance record (first login today)
+    // New clock in
     const attendance = await Attendance.create({
       userId,
       clockInTime: new Date(),
@@ -54,51 +41,33 @@ async function autoClockIn(userId, sessionId, ipAddress = null) {
       status: "present",
     });
 
-    // Emit real-time update via WebSocket
     emitAttendanceUpdate(userId, "clock-in", attendance);
-
-    console.log(`✅ Auto clock-in: User ${userId} at ${new Date()}`);
+    console.log(`User ${userId} clocked in at ${new Date()}`);
     return attendance;
-  } catch (error) {
-    console.error("❌ Auto clock-in error:", error);
-    console.error("Error details:", error.message);
-    throw error;
+  } catch (err) {
+    console.error("Clock-in error:", err);
+    throw err;
   }
 }
 
-/**
- * Auto clock-out when user logs out
- */
 async function autoClockOut(userId, sessionId = null) {
   try {
     const today = new Date().toISOString().split("T")[0];
-
-    // Find active attendance record - try with sessionId first, then without
     let attendance = null;
 
     if (sessionId) {
       attendance = await Attendance.findOne({
-        where: {
-          userId,
-          date: today,
-          isActive: true,
-          sessionId: sessionId,
-        },
+        where: { userId, date: today, isActive: true, sessionId },
       });
     }
-    // If no exact session match, find any active attendance for this user today
     if (!attendance) {
       attendance = await Attendance.findOne({
-        where: {
-          userId,
-          date: today,
-          isActive: true,
-        },
+        where: { userId, date: today, isActive: true },
       });
     }
 
     if (!attendance) {
-      console.log(`⚠️ No active attendance found for user ${userId}`);
+      console.log(`No active attendance for user ${userId}`);
       return null;
     }
 
@@ -111,77 +80,51 @@ async function autoClockOut(userId, sessionId = null) {
       isActive: false,
     });
 
-    // Emit real-time update via WebSocket
     emitAttendanceUpdate(userId, "clock-out", attendance);
-
-    console.log(`✅ Auto clock-out: User ${userId} worked ${totalHours} hours`);
+    console.log(`User ${userId} clocked out, worked ${totalHours} hours`);
     return attendance;
-  } catch (error) {
-    console.error("❌ Auto clock-out error:", error);
-    throw error;
+  } catch (err) {
+    console.error("Clock-out error:", err);
+    throw err;
   }
 }
 
-/**
- * Handle session timeout (automatic logout)
- */
 async function handleSessionTimeout(sessionId) {
   try {
     const attendance = await Attendance.findOne({
-      where: {
-        sessionId,
-        isActive: true,
-      },
+      where: { sessionId, isActive: true },
     });
 
     if (attendance) {
       await autoClockOut(attendance.userId, sessionId);
-      console.log(`⏰ Session timeout handled for user ${attendance.userId}`);
+      console.log(`Session timeout for user ${attendance.userId}`);
     }
-  } catch (error) {
-    console.error("❌ Session timeout error:", error);
+  } catch (err) {
+    console.error("Session timeout error:", err);
   }
 }
 
-/**
- * Calculate working hours between two times
- */
 function calculateHours(clockIn, clockOut) {
   const diffMs = new Date(clockOut) - new Date(clockIn);
   const diffHours = diffMs / (1000 * 60 * 60);
-  return Math.round(diffHours * 100) / 100; // Round to 2 decimal places
+  return Math.round(diffHours * 100) / 100;
 }
 
-/**
- * Get today's attendance for a user
- */
 async function getTodayAttendance(userId) {
   try {
     const today = new Date().toISOString().split("T")[0];
 
     const attendance = await Attendance.findOne({
-      where: {
-        userId,
-        date: today,
-      },
-      include: [
-        {
-          model: User,
-          attributes: ["id", "name", "email"],
-        },
-      ],
+      where: { userId, date: today },
+      include: [{ model: User, attributes: ["id", "name", "email"] }],
     });
 
     return attendance;
-  } catch (error) {
-    console.error("❌ Get today attendance error:", error);
-    throw error;
+  } catch (err) {
+    console.error("Get today attendance error:", err);
+    throw err;
   }
 }
-
-/**
- * Get attendance history with pagination
- */
 async function getAttendanceHistory(userId, page = 1, limit = 10) {
   try {
     const offset = (page - 1) * limit;
@@ -191,12 +134,7 @@ async function getAttendanceHistory(userId, page = 1, limit = 10) {
       order: [["date", "DESC"]],
       limit: parseInt(limit),
       offset,
-      include: [
-        {
-          model: User,
-          attributes: ["id", "name", "email"],
-        },
-      ],
+      include: [{ model: User, attributes: ["id", "name", "email"] }],
     });
 
     return {
@@ -208,25 +146,19 @@ async function getAttendanceHistory(userId, page = 1, limit = 10) {
         recordsPerPage: limit,
       },
     };
-  } catch (error) {
-    console.error("❌ Get attendance history error:", error);
-    throw error;
+  } catch (err) {
+    console.error("Get attendance history error:", err);
+    throw err;
   }
 }
 
-/**
- * Get attendance stats for a user
- */
 async function getAttendanceStats(userId, startDate = null, endDate = null) {
   try {
     const whereCondition = { userId };
 
     if (startDate && endDate) {
-      whereCondition.date = {
-        [Op.between]: [startDate, endDate],
-      };
+      whereCondition.date = { [Op.between]: [startDate, endDate] };
     } else {
-      // Default to current month
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -264,26 +196,22 @@ async function getAttendanceStats(userId, startDate = null, endDate = null) {
           ? Math.round((presentDays / totalDaysWorked) * 100)
           : 0,
     };
-  } catch (error) {
-    console.error("❌ Get attendance stats error:", error);
-    throw error;
+  } catch (err) {
+    console.error("Get attendance stats error:", err);
+    throw err;
   }
 }
 
-/**
- * Emit real-time attendance updates via WebSocket
- */
+// Send attendance updates to clients
 function emitAttendanceUpdate(userId, action, attendanceData) {
   try {
     if (io) {
-      // Emit to specific user
       io.to(`user_${userId}`).emit("attendance_update", {
         action,
         data: attendanceData,
         timestamp: new Date(),
       });
 
-      // Emit to admin users for monitoring
       io.to("admin_room").emit("user_attendance_update", {
         userId,
         action,
@@ -291,24 +219,20 @@ function emitAttendanceUpdate(userId, action, attendanceData) {
         timestamp: new Date(),
       });
     }
-  } catch (error) {
-    console.error("❌ WebSocket emit error:", error);
+  } catch (err) {
+    console.error("WebSocket emit error:", err);
   }
 }
 
-/**
- * Cleanup old sessions (run periodically)
- */
+// Clean up old sessions
 async function cleanupOldSessions() {
   try {
-    const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
+    const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     const oldActiveSessions = await Attendance.findAll({
       where: {
         isActive: true,
-        clockInTime: {
-          [Op.lt]: cutoffTime,
-        },
+        clockInTime: { [Op.lt]: cutoffTime },
       },
     });
 
@@ -316,9 +240,9 @@ async function cleanupOldSessions() {
       await autoClockOut(attendance.userId, attendance.sessionId);
     }
 
-    console.log(`🧹 Cleaned up ${oldActiveSessions.length} old sessions`);
-  } catch (error) {
-    console.error("❌ Cleanup error:", error);
+    console.log(`Cleaned up ${oldActiveSessions.length} old sessions`);
+  } catch (err) {
+    console.error("Cleanup error:", err);
   }
 }
 

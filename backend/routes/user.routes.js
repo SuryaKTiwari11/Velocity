@@ -1,36 +1,58 @@
 import express from "express";
+import passport from "../configuration/passport.js";
+import { protect } from "../middleware/auth.middleware.js";
+
+// Auth Controllers
 import {
   signUp,
   login,
   logout,
   curUser,
 } from "../controller/auth.controller.js";
-import { getLivekitToken, searchUsers } from "../controller/user.controller.js";
+
+// SSO Controllers
 import {
   authSuccess,
   handleCallback,
 } from "../controller/ssoAuth.controller.js";
+
+// Password Controllers
 import {
   forgotPassword,
   verifyResetOTP,
   resetPassword,
 } from "../controller/password.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
-import passport from "../configuration/passport.js";
+
+// User Controllers
+import {
+  getLivekitToken,
+  searchUsers,
+} from "../controller/user.controller.js";
+
 const router = express.Router();
-//
+
+// Auth routes
 router.post("/signup", signUp);
 router.post("/login", login);
 router.post("/logout", logout);
 router.get("/me", protect, curUser);
-// Video call token endpoint
+
+// Password reset routes
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/reset-password", resetPassword);
+
+// Video call token
 router.post("/livekit-token", getLivekitToken);
+
+// User search
+router.get("/search", protect, searchUsers);
+
 // Google OAuth
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
-// Google OAuth
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
@@ -54,13 +76,7 @@ router.get(
   handleCallback
 );
 
-// SSO Auth Success (for frontend polling or direct success endpoint)
+// SSO Auth Success
 router.get("/auth/success", authSuccess);
-router.post("/forgot-password", forgotPassword);
-router.post("/verify-reset-otp", verifyResetOTP);
-router.post("/reset-password", resetPassword);
-
-// Search users for chat
-router.get("/search", protect, searchUsers);
 
 export default router;

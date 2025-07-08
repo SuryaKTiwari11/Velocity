@@ -2,9 +2,9 @@ import { User, Employee } from "../model/model.js";
 import { Op } from "sequelize";
 import { cityCoordinates, getRegion } from "../constant/city.js";
 
-// Get list of Indian cities - for signup dropdown
+
 export const getCities = async (req, res) => {
-  // Return sorted list of cities with coordinates
+
   try {
     res.status(200).json({
       success: true,
@@ -19,11 +19,9 @@ export const getCities = async (req, res) => {
     });
   }
 };
-
-// Get map data - matches frontend: getData: () => api.get("/map/data")
 export const getData = async (req, res) => {
   try {
-    // Use Sequelize aggregation to count users by city
+   
     const cityCounts = await User.findAll({
       attributes: [
         "city",
@@ -67,8 +65,6 @@ export const getData = async (req, res) => {
     });
   }
 };
-
-// Get users by city - matches frontend: getUsersByCity: () => api.get("/map/users-by-city")
 export const getUsersByCity = async (req, res) => {
   try {
     const users = await User.findAll({
@@ -121,7 +117,7 @@ export const getUsersByCity = async (req, res) => {
   }
 };
 
-// Get map stats - matches frontend: getStats: () => api.get("/map/stats")
+
 export const getStats = async (req, res) => {
   try {
     const [totalUsers, usersWithLocation, states] = await Promise.all([

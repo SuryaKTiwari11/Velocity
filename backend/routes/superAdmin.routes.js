@@ -6,10 +6,10 @@ import {
   getAllInvites,
   deleteCompany,
 } from "../controller/superAdmin.controller.js";
-import { superAdminOnly } from "../middleware/auth.middleware.js";
+import { protect, superAdminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
-
+router.use(protect)
 router.use(superAdminOnly);
 
 // All endpoints support pagination via ?page=1&limit=20

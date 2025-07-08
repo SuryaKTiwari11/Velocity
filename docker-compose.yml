@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+      - "5678:5678"
+    volumes:
+      - localstack_data:/tmp/localstack
+    networks:
+      - bridge
+
+  ems-redis:
+    image: redis
+    container_name: ems-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bridge
+
+volumes:
+  localstack_data:
+  redis_data:
+
+networks:
+  bridge:
+    external: true

@@ -62,10 +62,11 @@ const setupAssociations = (models) => {
   // Invite associations
   Company.hasMany(Invite, { foreignKey: "companyId", as: "invites" });
   Invite.belongsTo(Company, { foreignKey: "companyId", as: "company" });
-  Invite.belongsTo(User, { foreignKey: "userId", as: "user" });
+  // Invite should NOT belong to User by userId (no userId in Invite model/table)
+  // Invite.belongsTo(User, { foreignKey: "userId", as: "user" });
 
   Attendance.belongsTo(Company, { foreignKey: "companyId" });
-Company.hasMany(Attendance, { foreignKey: "companyId" });
+  Company.hasMany(Attendance, { foreignKey: "companyId" });
 
   return models;
 };

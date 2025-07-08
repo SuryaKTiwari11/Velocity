@@ -8,13 +8,10 @@ import {
 
 const router = express.Router();
 
-// Admin creates an invite
-router.post("/invite", protect, adminOnly, createInvite);
+router.post("/", protect, adminOnly, createInvite);
 
-// Validate invite token (for signup page prefill/validation)
-router.get("/invite/validate", validateInviteToken);
+router.get("/validate", validateInviteToken);
 
-// Accept invite and signup (invite-only signup)
-router.post("/invite/signup", validateInviteAndSignup);
+router.post("/signup", validateInviteAndSignup);
 
 export default router;

@@ -5,7 +5,7 @@ export const registerCompany = async (req, res) => {
   try {
     const { companyName, companyCode, adminName, adminEmail, adminPassword } =
       req.body;
-    // Validate input
+
     if (
       !companyName ||
       !companyCode ||
@@ -20,7 +20,7 @@ export const registerCompany = async (req, res) => {
       });
     }
 
-    // Check if company already exists
+
     const existingCompany = await Company.findOne({
       where: { companyCode: companyCode.toLowerCase() },
     });
@@ -31,7 +31,7 @@ export const registerCompany = async (req, res) => {
       });
     }
 
-    // Create new company
+   
     const newCompany = await Company.create({
       companyName,
       companyCode: companyCode.toLowerCase(),
@@ -39,11 +39,11 @@ export const registerCompany = async (req, res) => {
       maxEmployees: 10,
     });
 
-    // Hash admin password
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
-    // Create admin user for the company
+
     await User.create({
       name: adminName,
       email: adminEmail,

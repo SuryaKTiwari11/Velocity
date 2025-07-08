@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { employeeApi as empApi, otpApi } from "../src/front2backconnect/api";
 import useAuthStore from "../src/store/authStore";
+
 import ActivityLogs from "./ActivityLogs";
 import ErrorBoundary from "./ErrorBoundary";
+import InviteUserModal from "./InviteUserModal";
 
 const HRadminPage = () => {
   const [emps, setEmps] = useState([]);
@@ -29,6 +31,7 @@ const HRadminPage = () => {
   const [err, setErr] = useState(null);
   const { isAuthenticated: isAuth, isAdmin: isAdm } = useAuthStore();
   const nav = useNavigate();
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   const [pg, setPg] = useState(1);
   const lim = 5; // Fixed limit per page
@@ -177,6 +180,18 @@ const HRadminPage = () => {
             <Link to="/add">
               <button className={`px-6 py-2 bg-green-600 text-white`}>Add New Employee</button>
             </Link>
+            {/* Invite User button for admins to generate/send invite links */}
+            <button
+              className="px-6 py-2 bg-blue-500 text-white"
+              onClick={() => setShowInviteModal(true)}
+            >
+              Invite User
+            </button>
+            <InviteUserModal
+              isOpen={showInviteModal}
+              onClose={() => setShowInviteModal(false)}
+              onSuccess={() => setShowInviteModal(false)}
+            />
           </div>
         </div>
         {otpMsg && (

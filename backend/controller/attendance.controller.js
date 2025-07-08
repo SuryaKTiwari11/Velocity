@@ -8,8 +8,7 @@ import * as AttendanceService from "../services/attendanceService.js";
 // Get today's attendance - matches frontend: today: () => api.get("/attendance/today")
 export const getTodayAttendance = async (req, res) => {
   try {
-    console.log("📅 Getting today's attendance for user:", req.user.id);
-
+   
     const attendance = await AttendanceService.getTodayAttendance(req.user.id);
 
     if (!attendance) {

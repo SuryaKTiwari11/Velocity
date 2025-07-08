@@ -10,8 +10,8 @@ export const getCompanyUsage = async (req, res) => {
     const employeeCount = await Employee.count({
       where: { companyId: company.companyId },
     });
-    // You can implement getUsageStats as needed
-    const usageStats = {}; // Placeholder for last30Days, etc.
+  
+    const usageStats = {}; 
     res.json({
       employeeCount,
       maxEmployees: company.maxEmployees,

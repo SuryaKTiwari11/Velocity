@@ -1,5 +1,3 @@
-// s3Document.controller.js - Fixed to match frontend API exactly with AWS SDK v3
-
 import { S3Document, User } from "../model/model.js";
 import { logAction } from "../services/auditServices.js";
 import { upload } from "../middleware/upload.js";
@@ -12,6 +10,10 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 
+import { Upload } from "@aws-sdk/lib-storage";
+import fs from "fs";
+import { documentQueue } from "../queues/simple.js";
+
 // Configure AWS S3 Client for LocalStack
 const s3Client = new S3Client({
   endpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
@@ -23,42 +25,50 @@ const s3Client = new S3Client({
   forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || "employee-documents";
+const BUCKET_NAME = "employee-documents";
 
 // Upload file - matches frontend: upload: (formData) => api.post("/s3-documents/upload", formData)
 export const uploadFile = async (req, res) => {
   try {
     const { title, type } = req.body;
     const file = req.file;
-
     if (!file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file provided",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "No file provided" });
     }
-
-    // Generate unique filename
+    // Check if file exists before streaming
+    if (!fs.existsSync(file.path)) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Temp file missing after upload" });
+    }
     const filename = `${Date.now()}_${file.originalname}`;
     const key = `documents/${req.user.id}/${filename}`;
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
+    // Use Upload class with file stream for disk storage
+    const fileStream = fs.createReadStream(file.path);
+    const upload = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: fileStream,
+        ContentType: file.mimetype,
+      },
     });
+    // Optionally log progress
+    // upload.on('httpUploadProgress', (progress) => {
+    //   console.log('Progress:', progress);
+    // });
+    await upload.done();
 
-    const uploadResult = await s3Client.send(uploadCommand);
-
-    // Save to database
     const document = await S3Document.create({
       title: title || file.originalname,
-      filename: filename, // Use the generated filename, not original
-      originalName: file.originalname, // Add the required originalName field
+      filename,
+      originalName: file.originalname,
       s3Key: key,
-      s3Bucket: BUCKET_NAME, // Add the required s3Bucket field
+      s3Bucket: BUCKET_NAME,
       s3Url: `https://${BUCKET_NAME}.s3.${
         process.env.AWS_REGION || "us-east-1"
       }.amazonaws.com/${key}`,
@@ -66,10 +76,11 @@ export const uploadFile = async (req, res) => {
       mimeType: file.mimetype,
       type: type || "other",
       userId: req.user.id,
-      status: "pending",
+      companyId: req.user.companyId,
+      status: "uploaded",
     });
-
-    // Log the action
+    // Add a job to the document processing queue
+    await documentQueue.add("process-document", { documentId: document.id });
     await logAction(
       req.user.id,
       "UPLOAD_DOCUMENT",
@@ -79,18 +90,17 @@ export const uploadFile = async (req, res) => {
       document,
       req
     );
-
     res.status(201).json({
       success: true,
       message: "File uploaded successfully",
       data: document,
     });
   } catch (error) {
-    console.error("Upload error:", error);
     res.status(500).json({
       success: false,
       message: "Upload failed",
       error: error.message,
+      stack: error.stack,
     });
   }
 };
@@ -98,45 +108,25 @@ export const uploadFile = async (req, res) => {
 // Get user's documents - matches frontend: list: () => api.get("/s3-documents/")
 export const getFiles = async (req, res) => {
   try {
-    console.log("📂 Getting files for user:", req.user?.id);
-    console.log("📂 User object:", req.user);
     const { employeeId } = req.params;
-
-    // Check if user is authenticated
-    if (!req.user || !req.user.id) {
-      console.error("❌ User not authenticated");
+    if (!req.user || !req.user.id || !req.user.companyId) {
       return res.status(401).json({
         success: false,
-        message: "User not authenticated",
+        message: "User not authenticated or missing companyId",
       });
     }
-
-    let whereCondition = {};
-
-    // If employeeId provided, get that employee's docs (admin route)
+    let whereCondition = { companyId: req.user.companyId };
     if (employeeId) {
       whereCondition.userId = employeeId;
-      console.log("📂 Getting files for employee:", employeeId);
     } else {
-      // Otherwise get current user's docs
       whereCondition.userId = req.user.id;
-      console.log("📂 Getting files for current user:", req.user.id);
     }
-
     const documents = await S3Document.findAll({
       where: whereCondition,
       order: [["createdAt", "DESC"]],
     });
-
-    console.log("📂 Found", documents.length, "documents");
-
-    res.json({
-      success: true,
-      data: documents,
-      count: documents.length,
-    });
+    res.json({ success: true, data: documents, count: documents.length });
   } catch (error) {
-    console.error("❌ Get files error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to get documents",
@@ -149,56 +139,36 @@ export const getFiles = async (req, res) => {
 export const downloadFile = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Check if user is authenticated
     if (!req.user || !req.user.id) {
-      console.error("❌ User not authenticated for download");
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "User not authenticated" });
     }
-
-    console.log(`📥 Downloading document ${id} for user ${req.user.id}`);
-
     const document = await S3Document.findByPk(id);
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Document not found" });
     }
-
-    // Check if user owns this document (security check)
     if (document.userId !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to download this document",
       });
     }
-
-    console.log(`📥 Generating download URL for: ${document.s3Key}`);
-
-    // Generate signed URL for download
     const getObjectCommand = new GetObjectCommand({
       Bucket: BUCKET_NAME,
       Key: document.s3Key,
     });
-
     const downloadUrl = await getSignedUrl(s3Client, getObjectCommand, {
-      expiresIn: 3600, // 1 hour
+      expiresIn: 3600,
     });
-
-    console.log(`✅ Download URL generated successfully`);
-
     res.json({
       success: true,
       downloadUrl,
       filename: document.originalName || document.filename,
     });
   } catch (error) {
-    console.error("❌ Download error:", error);
-    console.error("Error stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Download failed",
@@ -211,49 +181,27 @@ export const downloadFile = async (req, res) => {
 export const deleteFile = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Check if user is authenticated
     if (!req.user || !req.user.id) {
-      console.error("❌ User not authenticated for delete");
-      return res.status(401).json({
-        success: false,
-        message: "User not authenticated",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "User not authenticated" });
     }
-
-    console.log(`🗑️ Deleting document ${id} for user ${req.user.id}`);
-
     const document = await S3Document.findByPk(id);
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Document not found" });
     }
-
-    // Check if user owns this document (security check)
     if (document.userId !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to delete this document",
       });
     }
-
-    // Delete from S3
-    console.log(`🗑️ Deleting from S3: ${document.s3Key}`);
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: document.s3Key,
-    });
-
-    await s3Client.send(deleteCommand);
-    console.log(`✅ Deleted from S3 successfully`);
-
-    // Delete from database
+    await s3Client.send(
+      new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: document.s3Key })
+    );
     await document.destroy();
-    console.log(`✅ Deleted from database successfully`);
-
-    // Log the action (with error handling)
     try {
       await logAction(
         req.user.id,
@@ -264,25 +212,12 @@ export const deleteFile = async (req, res) => {
         null,
         req
       );
-    } catch (logError) {
-      console.error(
-        "⚠️ Audit log failed, but document deleted:",
-        logError.message
-      );
-    }
-
-    res.json({
-      success: true,
-      message: "Document deleted successfully",
-    });
+    } catch (logError) {}
+    res.json({ success: true, message: "Document deleted successfully" });
   } catch (error) {
-    console.error("❌ Delete error:", error);
-    console.error("Error stack:", error.stack);
-    res.status(500).json({
-      success: false,
-      message: "Delete failed",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "Delete failed", error: error.message });
   }
 };
 
@@ -291,24 +226,16 @@ export const getAllFiles = async (req, res) => {
   try {
     const { page = 1, limit = 10, type, status } = req.query;
     const offset = (page - 1) * limit;
-
     const whereCondition = {};
     if (type) whereCondition.type = type;
     if (status) whereCondition.status = status;
-
     const { count, rows: documents } = await S3Document.findAndCountAll({
       where: whereCondition,
       order: [["createdAt", "DESC"]],
       limit: parseInt(limit),
       offset,
-      include: [
-        {
-          model: User,
-          attributes: ["id", "name", "email"],
-        },
-      ],
+      include: [{ model: User, attributes: ["id", "name", "email"] }],
     });
-
     res.json({
       success: true,
       data: documents,
@@ -319,7 +246,6 @@ export const getAllFiles = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get all files error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to get all documents",
@@ -333,19 +259,14 @@ export const updateFileStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
-
     const document = await S3Document.findByPk(id);
     if (!document) {
-      return res.status(404).json({
-        success: false,
-        message: "Document not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Document not found" });
     }
-
     const oldData = { ...document.dataValues };
     await document.update({ status, notes });
-
-    // Log the action
     await logAction(
       req.user.id,
       "UPDATE_DOCUMENT_STATUS",
@@ -355,14 +276,12 @@ export const updateFileStatus = async (req, res) => {
       document,
       req
     );
-
     res.json({
       success: true,
       message: "Document status updated",
       data: document,
     });
   } catch (error) {
-    console.error("Update status error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update document status",
@@ -374,12 +293,8 @@ export const updateFileStatus = async (req, res) => {
 // Health check
 export const healthCheck = async (req, res) => {
   try {
-    console.log(`Health check initiated by user: ${req.user?.id || "unknown"}`); // Use req to avoid unused variable warning
-
-    // Test S3 connection
     const headBucketCommand = new HeadBucketCommand({ Bucket: BUCKET_NAME });
     await s3Client.send(headBucketCommand);
-
     res.json({
       success: true,
       message: "S3 connection healthy",
@@ -387,7 +302,6 @@ export const healthCheck = async (req, res) => {
       endpoint: process.env.AWS_ENDPOINT_URL || "http://localhost:4566",
     });
   } catch (error) {
-    console.error("S3 health check failed:", error);
     res.status(500).json({
       success: false,
       message: "S3 connection failed",

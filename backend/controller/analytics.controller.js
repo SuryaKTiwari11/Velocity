@@ -5,123 +5,78 @@ import sequelize from "../configuration/db.js";
 export const getEmployeeStats = async (req, res) => {
   try {
     const { Employee } = req.models;
-    const companyId = req.user.companyId;
-    // Simple count first to test
-    const totalEmployees = await Employee.count({ where: { companyId } });
-
-    // If no employees exist, return sample data
-    if (totalEmployees === 0) {
+    const cid = req.user.companyId;
+    const total = await Employee.count({ where: { companyId: cid } });
+    if (total === 0) {
       return res.json({
         success: true,
         data: {
-          totalEmployees: 0,
-          salaryDistribution: [
-            { range: "20k-30k", count: 0, percentage: "0" },
-            { range: "30k-50k", count: 0, percentage: "0" },
-            { range: "50k+", count: 0, percentage: "0" },
+          total: 0,
+          salaryDist: [
+            { range: "20k-30k", count: 0, pct: "0" },
+            { range: "30k-50k", count: 0, pct: "0" },
+            { range: "50k+", count: 0, pct: "0" },
           ],
-          departmentStats: [],
-          monthlyHiring: [],
+          deptStats: [],
+          monthlyHire: [],
         },
       });
     }
-
-    // Salary distribution - simplified approach
-    const allEmployees = await Employee.findAll({
-      attributes: ["salary"],
-      where: { companyId },
-      raw: true,
-    });
-
-    // Calculate salary ranges manually (easier for students to understand)
+    const all = await Employee.findAll({ attributes: ["salary"], where: { companyId: cid }, raw: true });
     const salaryRanges = [
       { range: "20k-30k", count: 0 },
       { range: "30k-50k", count: 0 },
       { range: "50k+", count: 0 },
     ];
-
-    allEmployees.forEach((emp) => {
-      const salary = emp.salary || 0;
-      if (salary < 30000) {
-        salaryRanges[0].count++;
-      } else if (salary >= 30000 && salary <= 50000) {
-        salaryRanges[1].count++;
-      } else {
-        salaryRanges[2].count++;
-      }
+    all.forEach((e) => {
+      const s = e.salary || 0;
+      if (s < 30000) salaryRanges[0].count++;
+      else if (s >= 30000 && s <= 50000) salaryRanges[1].count++;
+      else salaryRanges[2].count++;
     });
-
-    // Calculate percentages for salary distribution
-    const salaryDistribution = salaryRanges.map((range) => ({
-      range: range.range,
-      count: range.count,
-      percentage:
-        totalEmployees > 0
-          ? ((range.count / totalEmployees) * 100).toFixed(1)
-          : 0,
+    const salaryDist = salaryRanges.map((r) => ({
+      range: r.range,
+      count: r.count,
+      pct: total > 0 ? ((r.count / total) * 100).toFixed(1) : 0,
     }));
-
-    // Department-wise breakdown - simplified
-    const departmentStats = await Employee.findAll({
+    const deptStatsRaw = await Employee.findAll({
       attributes: [
         "department",
         [sequelize.fn("COUNT", sequelize.col("id")), "count"],
         [sequelize.fn("AVG", sequelize.col("salary")), "avgSalary"],
       ],
-      where: {
-        companyId,
-        department: {
-          [Op.not]: null,
-        },
-      },
+      where: { companyId: cid, department: { [Op.not]: null } },
       group: ["department"],
       raw: true,
     });
-
-    // Monthly hiring trends (simplified - last 6 months)
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const recentEmployees = await Employee.findAll({
-      where: {
-        companyId,
-        createdAt: {
-          [Op.gte]: sixMonthsAgo,
-        },
-      },
+    const deptStats = deptStatsRaw.map((d) => ({
+      department: d.department || "Not Specified",
+      count: parseInt(d.count),
+      avgSalary: Math.round(parseFloat(d.avgSalary) || 0),
+    }));
+    const sixMo = new Date();
+    sixMo.setMonth(sixMo.getMonth() - 6);
+    const recent = await Employee.findAll({
+      where: { companyId: cid, createdAt: { [Op.gte]: sixMo } },
       attributes: ["createdAt"],
       raw: true,
     });
-
-    // Process monthly data manually (easier to understand)
-    const monthlyData = {};
-    recentEmployees.forEach((emp) => {
-      const month = new Date(emp.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-      });
-      monthlyData[month] = (monthlyData[month] || 0) + 1;
+    const monthly = {};
+    recent.forEach((e) => {
+      const m = new Date(e.createdAt).toLocaleDateString("en-US", { month: "short" });
+      monthly[m] = (monthly[m] || 0) + 1;
     });
-
-    const monthlyHiring = Object.entries(monthlyData).map(([month, hired]) => ({
-      month,
-      hired,
-    }));
-
+    const monthlyHire = Object.entries(monthly).map(([month, hired]) => ({ month, hired }));
     res.json({
       success: true,
       data: {
-        totalEmployees,
-        salaryDistribution,
-        departmentStats: departmentStats.map((dept) => ({
-          department: dept.department || "Not Specified",
-          count: parseInt(dept.count),
-          avgSalary: Math.round(parseFloat(dept.avgSalary) || 0),
-        })),
-        monthlyHiring,
+        total,
+        salaryDist,
+        deptStats,
+        monthlyHire,
       },
     });
   } catch (error) {
-    console.error("Employee stats error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch employee statistics",
@@ -323,10 +278,10 @@ export const getRevenueStats = async (req, res) => {
       users: item.newPremium,
     }));
 
-    // Calculate total revenue
+
     const totalRevenue = premiumUsers * revenuePerUser;
 
-    // User registration trends - simplified
+  
     const recentRegistrations = await User.findAll({
       where: {
         createdAt: {
@@ -375,12 +330,11 @@ export const getRevenueStats = async (req, res) => {
   }
 };
 
-// Get combined dashboard data
 export const getDashboardData = async (req, res) => {
   try {
     const { Employee, Document, User } = req.models;
 
-    // Quick stats for dashboard cards
+  
     const [employeeCount, documentCount, userCount, premiumCount] =
       await Promise.all([
         Employee.count(),

@@ -5,6 +5,19 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
+export const onboardingApi = {
+  getData: () => api.get("/onboarding/data"),
+  getTrainingStatus: () => api.get("/onboarding/training-status"),
+  trackVideoProgress: (data) => api.post("/onboarding/video-progress", data),
+  submitDocuments: () => api.post("/onboarding/submit-documents"),
+  getPendingVerifications: () =>
+    api.get("/onboarding/admin/pending-verifications"),
+  verifyUser: (userId, action, notes) =>
+    api.patch(`/onboarding/admin/verify-user/${userId}`, { action, notes }),
+  // Dev-only: Mark a video as complete for the current user
+  markVideoComplete: (videoId) =>
+    api.post("/onboarding/dev/mark-video-complete", { videoId }),
+};
 // Super Admin API
 export const superAdminApi = {
   getCompanies: (params) => api.get("/super-admin/companies", { params }),
@@ -48,7 +61,7 @@ export const authApi = {
   login: (data) => api.post("/users/login", data),
   logout: () => api.post("/users/logout"),
   curUser: () => api.get("/users/me"),
-  // googleUrl: () => "http://localhost:3000/api/users/auth/google", // Google login/signup disabled
+   googleUrl: () => "http://localhost:3000/api/users/auth/google", 
   githubUrl: () => "http://localhost:3000/api/users/auth/github",
   authSuccess: () => api.get("/users/auth/success"),
   forgotPassword: (email) => api.post("/users/forgot-password", { email }),
@@ -148,16 +161,3 @@ export const auditApi = {
 };
 
 // Onboarding API
-export const onboardingApi = {
-  getData: () => api.get("/onboarding/data"),
-  getTrainingStatus: () => api.get("/onboarding/training-status"),
-  trackVideoProgress: (data) => api.post("/onboarding/video-progress", data),
-  submitDocuments: () => api.post("/onboarding/submit-documents"),
-  getPendingVerifications: () =>
-    api.get("/onboarding/admin/pending-verifications"),
-  verifyUser: (userId, action, notes) =>
-    api.patch(`/onboarding/admin/verify-user/${userId}`, { action, notes }),
-  // Dev-only: Mark a video as complete for the current user
-  markVideoComplete: (videoId) =>
-    api.post("/onboarding/dev/mark-video-complete", { videoId }),
-};

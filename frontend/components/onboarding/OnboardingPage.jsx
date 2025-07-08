@@ -10,29 +10,43 @@ const OnboardingPage = () => {
     const [completedVideos, setCompletedVideos] = useState(new Set());
     const [userDocuments, setUserDocuments] = useState([]);
 
+    // Restore progress from localStorage on mount, but prefer backend if onboarding is complete
     useEffect(() => {
+        const saved = localStorage.getItem('onboardingProgress');
+        if (saved) {
+            const { completedVideos, currentVideoIndex } = JSON.parse(saved);
+            setCompletedVideos(new Set(completedVideos));
+            setCurrentVideoIndex(currentVideoIndex);
+        }
         fetchOnboardingData();
         fetchUserDocuments();
     }, []);
+
+    // When onboardingData loads, if no localStorage, set state from backend
+    useEffect(() => {
+        if (onboardingData) {
+            const saved = localStorage.getItem('onboardingProgress');
+            if (!saved) {
+                // Set completed videos from progress data
+                const completed = new Set(
+                    onboardingData.progressData
+                        ? onboardingData.progressData.filter(p => p.isCompleted).map(p => p.videoId)
+                        : []
+                );
+                setCompletedVideos(completed);
+                // Find current video index
+                const nextVideoIndex = onboardingData.trainingVideos
+                    ? onboardingData.trainingVideos.findIndex(video => !completed.has(video.id))
+                    : 0;
+                setCurrentVideoIndex(nextVideoIndex === -1 ? 0 : nextVideoIndex);
+            }
+        }
+    }, [onboardingData]);
 
     const fetchOnboardingData = async () => {
         try {
             const response = await onboardingApi.getData();
             setOnboardingData(response.data);
-            
-            // Set completed videos from progress data
-            const completed = new Set(
-                response.data.progressData
-                    .filter(p => p.isCompleted)
-                    .map(p => p.videoId)
-            );
-            setCompletedVideos(completed);
-            
-            // Find current video index
-            const nextVideoIndex = response.data.trainingVideos.findIndex(
-                video => !completed.has(video.id)
-            );
-            setCurrentVideoIndex(nextVideoIndex === -1 ? 0 : nextVideoIndex);
         } catch (error) {
             console.error('Error fetching onboarding data:', error);
         } finally {
@@ -59,21 +73,38 @@ const OnboardingPage = () => {
                 totalDuration: onboardingData.trainingVideos.find(v => v.id === videoId)?.duration || 0
             });
 
-            // Update local state
-            setCompletedVideos(prev => new Set([...prev, videoId]));
-            
+            // Update local state and localStorage immediately
+            setCompletedVideos(prev => {
+                const updated = new Set([...prev, videoId]);
+                localStorage.setItem('onboardingProgress', JSON.stringify({
+                    completedVideos: Array.from(updated),
+                    currentVideoIndex: currentVideoIndex + 1,
+                    trainingProgress: onboardingData.trainingProgress
+                }));
+                return updated;
+            });
             // Move to next video
             const nextIndex = currentVideoIndex + 1;
             if (nextIndex < onboardingData.trainingVideos.length) {
                 setCurrentVideoIndex(nextIndex);
             }
-
             // Refresh data to check if training is complete
             setTimeout(fetchOnboardingData, 1000);
         } catch (error) {
             console.error('Error tracking video progress:', error);
         }
     };
+
+    // Save progress to localStorage whenever progress changes (except when onboarding is complete)
+    useEffect(() => {
+        if (onboardingData && onboardingData.user?.onboardingStatus !== 'approved') {
+            localStorage.setItem('onboardingProgress', JSON.stringify({
+                completedVideos: Array.from(completedVideos),
+                currentVideoIndex,
+                trainingProgress: onboardingData.trainingProgress
+            }));
+        }
+    }, [completedVideos, currentVideoIndex, onboardingData]);
 
     const handleDocumentSubmit = async () => {
         try {
@@ -116,6 +147,8 @@ const OnboardingPage = () => {
     const { user: userData, trainingVideos, trainingProgress } = onboardingData;
 
     if (userData.onboardingStatus === 'approved') {
+        // Clear localStorage when onboarding is complete
+        localStorage.removeItem('onboardingProgress');
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-6">

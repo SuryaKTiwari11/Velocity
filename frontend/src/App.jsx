@@ -1,9 +1,3 @@
-import CompanyAdminPanel from "../components/CompanyAdminPanel";
-        <Route path="/company-admin" element={
-          <ProtectedRoute requireAdmin={true}>
-            <CompanyAdminPanel />
-          </ProtectedRoute>
-        } />
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -30,14 +24,15 @@ import SuperAdminDashboard from "../components/SuperAdminDashboard";
 import PremiumPayment from "../components/PremiumPayment";
 import ZoomMeeting from "../components/ZoomMeeting";
 import NotFound from "../components/NotFound";
+import CompanyAdminPanel from "../components/CompanyAdminPanel";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 // Pages
 import AttendancePage from "./pages/AttendancePage";
 import AdminAttendancePage from "./pages/AdminAttendancePage";
 
-// Store & Routes
+// Store
 import useAuthStore from "./store/authStore";
-import ProtectedRoute from "../components/ProtectedRoute";
 
 const App = () => {
   const { checkAuth } = useAuthStore();
@@ -60,79 +55,132 @@ const App = () => {
         <Route path="/verify-otp" element={<VerifyOTPForm />} />
         <Route path="/reset-password" element={<ResetPasswordForm />} />
         <Route path="/hradmin" element={<HRadminPage />} />
-        <Route path="/premium-payment" element={<PremiumPayment onSuccess={() => window.location.reload()} />} />
+        <Route
+          path="/premium-payment"
+          element={<PremiumPayment onSuccess={() => window.location.reload()} />}
+        />
 
         {/* Protected Routes */}
-        <Route path="/profile" element={
-          <ProtectedRoute requireOnboarding={false}>
-            <ProfilePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/documents" element={
-          <ProtectedRoute requirePremium={true}>
-            <DocManager />
-          </ProtectedRoute>
-        } />
-        <Route path="/add" element={
-          <ProtectedRoute>
-            <InputForm />
-          </ProtectedRoute>
-        } />
-        <Route path="/edit/:id" element={
-          <ProtectedRoute>
-            <EditEmployee />
-          </ProtectedRoute>
-        } />
-        <Route path="/analytics" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AnalyticsDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/attendance" element={
-          <ProtectedRoute>
-            <AttendancePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/attendance" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminAttendancePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/meeting" element={
-          <ProtectedRoute requirePremium={true}>
-            <ZoomMeeting />
-          </ProtectedRoute>
-        } />
-        <Route path="/chat" element={
-          <ProtectedRoute>
-            <ChatPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/chat/:id" element={
-          <ProtectedRoute>
-            <ChatPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/call/:id" element={
-          <ProtectedRoute>
-            <CallPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/onboarding" element={
-          <ProtectedRoute requireOnboarding={false}>
-            <OnboardingPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/verifications" element={
-          <ProtectedRoute requireAdmin={true}>
-            <AdminVerificationPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/super-admin" element={
-          <ProtectedRoute>
-            <SuperAdminDashboard />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute requireOnboarding={false}>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <ProtectedRoute requirePremium={true}>
+              <DocManager />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add"
+          element={
+            <ProtectedRoute>
+              <InputForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit/:id"
+          element={
+            <ProtectedRoute>
+              <EditEmployee />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AnalyticsDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/attendance"
+          element={
+            <ProtectedRoute>
+              <AttendancePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/attendance"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminAttendancePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meeting"
+          element={
+            <ProtectedRoute requirePremium={true}>
+              <ZoomMeeting />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat/:id"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/call/:id"
+          element={
+            <ProtectedRoute>
+              <CallPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute requireOnboarding={false}>
+              <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/verifications"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <AdminVerificationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/super-admin"
+          element={
+            <ProtectedRoute>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company-admin"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <CompanyAdminPanel />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
