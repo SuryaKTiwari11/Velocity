@@ -2,18 +2,21 @@
 
 > **Next-Gen HR, Payroll, Collaboration & SaaS Platform**
 
-Welcome to the most advanced open-source Employee Management System! EMS is now a true multi-tenant SaaS platform, ready for startups, enterprises, and HR tech builders.
+Welcome to the most advanced open-source Employee Management System! EMS is now a true multi-tenant SaaS platform, designed for startups, enterprises, and HR tech builders.
 
-- **SaaS-Ready:** Multi-company, multi-tenant architecture. Each company has its own users, data, and settings. Built-in onboarding for new orgs.
-- **Modern Onboarding:** City selection, training video, S3 KYC upload, admin review
-- **S3 Document Management:** Upload, download, admin review, and cleanup (LocalStack compatible)
-- **Admin Dashboard:** Approve/reject/download docs, real-time analytics, and audit logs
-- **Premium Payments:** Razorpay UPI-first flow, multi-role access, and expiry logic
-- **Real-Time Chat & Video:** Stream + LiveKit for chat, video, and file sharing
-- **Automated SQL Migrations & S3 Health:** Robust data tracking and S3 setup scripts
-- **UI/UX:** Responsive, beautiful, with Lucide icons, dark mode, and instant toast notifications
-- **Audit & Security:** Full audit log, login history, JWT, rate limiting, and more
-- **Production-Ready:** Modular, scalable, and easy to extend for any org
+- **SaaS-Ready:** Multi-company, multi-tenant architecture. Each company has its own users, data, and settings. Built-in onboarding for new organizations. can be upgraded to account more people via premium plans.
+- **Super Admin Console:** Centralized management for all tenants, with the ability to monitor, onboard, and configure companies, enforce global policies, and view platform-wide analytics.
+- **Modern Onboarding:** City selection, training video, S3 KYC upload, admin review.
+- **Invite-Only Signup:** Enhanced privacy and security with invitation-based user registration, ensuring only authorized users can join a company.
+- **Real-Time Attendance Tracking:** Live attendance marking and monitoring, with instant updates for admins and employees, and integration with audit logs.
+- **S3 Document Management:** Upload, download, admin review, and cleanup (LocalStack compatible).
+- **Admin Dashboard:** Approve/reject/download docs, real-time analytics, and audit logs.
+- **Premium Payments:** Razorpay UPI-first flow, multi-role access, and expiry logic.
+- **Real-Time Chat & Video:** Stream + LiveKit for chat, video, and file sharing.
+- **Automated SQL Migrations & S3 Health:** Robust data tracking and S3 setup scripts.
+- **UI/UX:** Responsive, beautiful, with Lucide icons, dark mode, and instant toast notifications.
+- **Audit & Security:** Full audit log, login history, JWT, rate limiting, and more.
+- **Production-Ready:** Modular, scalable, and easy to extend for any organization.
 
 ---
 
@@ -23,6 +26,7 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 
 - Secure registration and login system (per company)
 - Company registration, onboarding, and management
+- Invite-only signup for improved privacy and access control
 - Multiple authentication methods: Email/Password, Google, GitHub SSO
 - Two-factor authentication with OTP verification
 - Password reset functionality
@@ -34,9 +38,17 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 - Search and filter employee data
 - Upload and manage documents (Premium users only, with real-time progress and auto-refresh)
 
+### 🕒 Real-Time Attendance Tracking
+
+- Live attendance marking with instant status updates
+- Real-time dashboard for admins to monitor attendance across teams and locations
+- Integration with audit logs for compliance and reporting
+- Automated notifications for late or missing check-ins
+
 ### 👩‍💼 Administrative Features
 
 - Role-based access control (Admin, Premium, Regular users)
+- Super Admin role for platform-wide management and oversight
 - Admin dashboard for data overview (per company)
 - Advanced employee management tools
 
@@ -86,6 +98,7 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 
 ### 🔒 Security Features
 
+- Invite-only signup for enhanced privacy and access control
 - JWT-based authentication with refresh tokens
 - Password hashing with bcrypt
 - Rate limiting to prevent brute force attacks
@@ -96,6 +109,7 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 ### 🚀 Modern Development Practices
 
 - Scalable, multi-tenant architecture with separation of concerns
+- Super Admin layer for SaaS management
 - Error logging and monitoring
 - API versioning and RESTful design
 - Environment-based configuration
@@ -203,10 +217,17 @@ frontend/
 
 ### Authentication & User Management
 
-- `POST /api/users/signup` - Register new user (company scoped)
+- `POST /api/users/invite` - Generate and send invitation for user signup (admin/super admin only)
+- `POST /api/users/signup` - Register new user via invitation (company scoped)
 - `POST /api/users/login` - User authentication (company scoped)
 - `GET /api/users/me` - Get current user profile (company scoped)
 - `POST /api/users/logout` - Secure logout
+
+### Attendance Management
+
+- `POST /api/attendance/mark` - Mark attendance (real-time, company scoped)
+- `GET /api/attendance/today` - Get today's attendance status (company scoped)
+- `GET /api/attendance/summary` - Attendance summary and analytics (admin/company scoped)
 
 ### Payment & Premium Features
 
@@ -226,6 +247,12 @@ frontend/
 - `GET /api/users/auth/google` - Google OAuth login
 - `GET /api/users/auth/github` - GitHub OAuth login
 
+### Super Admin & SaaS Management
+
+- `GET /api/superadmin/tenants` - List all companies/tenants
+- `POST /api/superadmin/onboard` - Onboard new company/tenant
+- `GET /api/superadmin/analytics` - Platform-wide analytics and monitoring
+
 ### Other Key Endpoints
 
 - **Company:** `/api/company` — company registration, onboarding, settings
@@ -235,6 +262,7 @@ frontend/
 - **Audit Log:** `/api/audit` — view actions, login history (company scoped)
 - **Payment:** `/api/payment` — Razorpay, UPI (company scoped)
 - **Chat/Video:** `/api/chat`, `/api/video` — real-time features (company scoped)
+- **Attendance:** `/api/attendance` — real-time attendance management (company scoped)
 - **All endpoints are company/tenant scoped for SaaS!**
 
 ---
