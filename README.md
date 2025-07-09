@@ -17,56 +17,37 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 
 ---
 
-## 🆕 2025 Advanced Features (SaaS Edition)
-
-- **SaaS Multi-Tenancy:** Each company is a tenant. All features (onboarding, docs, chat, payments, analytics) are company-scoped and secure.
-- **Company Onboarding:** New companies can sign up, get their own workspace, and onboard users instantly.
-- **Onboarding Flow:** City selection, video, S3 KYC upload, admin review
-- **S3 Document Management:** Upload/download/review, S3 cleanup script, LocalStack support
-- **Admin Dashboard:** Approve/reject/download docs, analytics, audit log
-- **SQL Migrations:** Onboarding & audit log support
-- **S3 Health & Setup Scripts:** Automated S3 bucket checks
-- **UI/UX:** Responsive, Lucide icons, GitHub/LeetCode/LinkedIn footer, toast notifications
-- **Real-Time Chat & Video:** Stream + LiveKit integration
-- **Premium Payments:** Razorpay UPI-first, expiry, multi-role
-- **Audit Log & Login History:** Track all actions and logins
-- **Production-Ready:** Clean, modular, scalable codebase
-
----
-
 ## ✨ Features
 
-### 👥 User & Company Management (SaaS)
+### 👥 User & Company Management
 
-- 🔐 Secure registration and login system (per company)
-- 🏢 Company registration, onboarding, and management
-- 🔑 Multiple authentication methods:
-  - 📧 Email/Password authentication
-  - 🌐 Single Sign-On (SSO) via Google and GitHub
-- 📱 Two-factor authentication with OTP verification
-- 🔄 Password reset functionality
-- 👤 User profile management (company-scoped)
+- Secure registration and login system (per company)
+- Company registration, onboarding, and management
+- Multiple authentication methods: Email/Password, Google, GitHub SSO
+- Two-factor authentication with OTP verification
+- Password reset functionality
+- User profile management (company-scoped)
 
-### 👨‍💼 Employee Management (Per Company)
+### 👨‍💼 Employee Management
 
-- ➕ Add, edit, delete, and view employee records (per company)
-- 🔍 Search and filter employee data
-- 📄 Upload and manage documents (Premium users only, with real-time progress and auto-refresh)
+- Add, edit, delete, and view employee records (per company)
+- Search and filter employee data
+- Upload and manage documents (Premium users only, with real-time progress and auto-refresh)
 
-### 👩‍💼 Administrative Features (SaaS)
+### 👩‍💼 Administrative Features
 
-- 👑 Role-based access control (Admin, Premium, Regular users)
-- 📊 Admin dashboard for data overview (per company)
-- 🛠️ Advanced employee management tools
+- Role-based access control (Admin, Premium, Regular users)
+- Admin dashboard for data overview (per company)
+- Advanced employee management tools
 
-### 💸 Premium & Payment Features (SaaS)
+### 💸 Premium & Payment Features
 
-- 💳 Razorpay integration for UPI-first premium upgrades (no mock gateway)
-- ⏳ Premium status with expiry (1 year, auto-expiry)
-- 🔒 Only premium users can upload/manage documents (with real-time upload progress and instant document list refresh)
-- 🧾 Payment verification and secure backend logic (per company)
+- Razorpay integration for UPI-first premium upgrades (no mock gateway)
+- Premium status with 1-year expiry (auto-expiry)
+- Only premium users can upload/manage documents (with real-time upload progress and instant document list refresh)
+- Payment verification and secure backend logic (per company)
 
-### 🎥 Video Calling (SaaS, Google Meet/Zoom Style)
+### 🎥 Video Calling
 
 - Modern video meetings for premium users, powered by [LiveKit](https://livekit.io/)
 - Lobby: Create or join meetings with a single click
@@ -75,7 +56,7 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 - Clean, student-friendly UI using TailwindCSS
 - Secure token generation via backend for LiveKit
 
-### 💬 Real-Time Chat & Communication (SaaS)
+### 💬 Real-Time Chat & Communication
 
 - Stream Chat Integration: Professional chat experience powered by [Stream Chat](https://getstream.io/chat/)
 - Video & Audio Calls: Integrated calling system with invitation cards in chat
@@ -84,66 +65,67 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 - File Sharing: Share documents and media files in chat conversations
 - Clean Architecture: Modern React components with error boundaries and safety checks
 
-### 🗺️ Location & Mapping Features (SaaS)
+### 🗺️ Location & Mapping Features
 
 - Interactive Maps: Employee location tracking and visualization
 - Geolocation Services: Real-time location updates and mapping
 - Location Analytics: Dashboard insights for employee locations
 - Map Integration: Seamless mapping experience for HR and administrative use
 
-### ⚡ Real-Time Document Uploads & Auto-Refresh (SaaS)
+### ⚡ Real-Time Document Uploads & Auto-Refresh
 
-EMS supports real-time document upload progress using **Socket.IO**. After uploading a document, the UI will automatically refresh and show the latest documents as soon as processing is complete. If the socket connection is not active, the app will connect and still refresh the document list after upload.
+- Real-time document upload progress using **Socket.IO**
+- UI auto-refreshes document list after upload and processing
 
-### ⚡ Background Jobs & Automation (SaaS)
+### ⚡ Background Jobs & Automation
 
-- 📨 Email/OTP queueing with BullMQ and Redis (production-ready job processing)
-- 🧹 Automated document cleanup and scheduled maintenance jobs
-- 📬 Bulk email notifications for critical actions
-- ⏰ Cron-based scheduling for recurring tasks
+- Email/OTP queueing with BullMQ and Redis
+- Automated document cleanup and scheduled maintenance jobs
+- Bulk email notifications for critical actions
+- Cron-based scheduling for recurring tasks
 
-### 🔒 Security Features (SaaS)
+### 🔒 Security Features
 
-- 🛡️ JWT-based authentication with refresh tokens
-- 🔒 Password hashing with bcrypt (industry standard)
-- ⏱️ Rate limiting to prevent brute force attacks
-- 📨 Email verification for new accounts
-- 🚫 CORS protection and security headers
-- 🔐 Role-based middleware protection (company/tenant scoped)
+- JWT-based authentication with refresh tokens
+- Password hashing with bcrypt
+- Rate limiting to prevent brute force attacks
+- Email verification for new accounts
+- CORS protection and security headers
+- Role-based middleware protection (company/tenant scoped)
 
-### 🚀 Modern Development Practices (SaaS)
+### 🚀 Modern Development Practices
 
-- 🏗️ Scalable, multi-tenant architecture with separation of concerns
-- 📊 Error logging and monitoring
-- 🔄 API versioning and RESTful design
-- 🧪 Environment-based configuration
-- 📱 Responsive design with mobile-first approach
+- Scalable, multi-tenant architecture with separation of concerns
+- Error logging and monitoring
+- API versioning and RESTful design
+- Environment-based configuration
+- Responsive design with mobile-first approach
 
 ---
 
 ## 🛠️ Technologies Used
 
-### 🖥️ Frontend (Modern React Ecosystem)
+### 🖥️ Frontend
 
-- ⚛️ React 19.x - Latest React with hooks and functional components
-- 🧭 React Router Dom 7.x - Client-side routing
-- 🎨 TailwindCSS 4.x - Utility-first CSS framework
-- 📦 Zustand - Lightweight state management
-- 🔄 Axios - Promise-based HTTP client
-- 🚀 Vite - Next-generation frontend build tool
+- React 19.x
+- React Router Dom 7.x
+- TailwindCSS 4.x
+- Zustand
+- Axios
+- Vite
 
-### ⚙️ Backend (Production-Ready Stack)
+### ⚙️ Backend
 
-- 📡 Express.js - Fast, unopinionated web framework
-- 🗄️ PostgreSQL - Advanced open-source relational database
-- 🔄 Sequelize - Promise-based Node.js ORM
-- 🔐 Passport.js - Authentication middleware (OAuth support)
-- 📧 Nodemailer - Email sending capabilities
-- 🔑 JWT - Secure token-based authentication
-- 🛡️ bcrypt - Password hashing and security
-- 🏗️ BullMQ + Redis - Background job processing and caching
-- 💳 Razorpay - Indian payment gateway integration
-- ⚡ Express Rate Limit - API protection middleware
+- Express.js
+- PostgreSQL
+- Sequelize
+- Passport.js
+- Nodemailer
+- JWT
+- bcrypt
+- BullMQ + Redis
+- Razorpay
+- Express Rate Limit
 
 ---
 
@@ -153,56 +135,27 @@ EMS supports real-time document upload progress using **Socket.IO**. After uploa
 
 ```
 backend/
-    ├── configuration/   # DB and passport setup
-    ├── controller/      # Business logic
-    ├── helper/          # Utility functions
-    ├── middleware/      # Express middleware
-    ├── model/           # Sequelize models
-    ├── queues/          # BullMQ job queues
-    ├── workers/         # Background job workers
-    └── routes/          # API endpoints
+   ├── configuration/   # DB and passport setup
+   ├── controller/      # Business logic
+   ├── helper/          # Utility functions
+   ├── middleware/      # Express middleware
+   ├── model/           # Sequelize models
+   ├── queues/          # BullMQ job queues
+   ├── workers/         # Background job workers
+   └── routes/          # API endpoints
 ```
 
 ### Frontend Structure
 
 ```
 frontend/
-    ├── components/      # React UI components
-    ├── src/
-    │   ├── assets/      # Static assets
-    │   ├── front2backconnect/ # API service layer
-    │   └── store/       # Zustand state
-    └── public/          # Static files
+   ├── components/      # React UI components
+   ├── src/
+   │   ├── assets/      # Static assets
+   │   ├── front2backconnect/ # API service layer
+   │   └── store/       # Zustand state
+   └── public/          # Static files
 ```
-
----
-
-## 🔍 Key Features Explained
-
-### 🔒 Authentication Flow (SaaS)
-
-- Register/login with email/password or SSO (Google/GitHub) per company
-- Email verification and OTP for extra security
-- JWT-based session management (company scoped)
-
-### 👑 Role-Based Access (SaaS)
-
-- Admin: Full access to all features (per company)
-- Regular: Limited to own profile and premium features
-- Middleware-protected routes (company/tenant scoped)
-
-### 💸 Premium Document Management (SaaS)
-
-- Only premium users (with valid payment) can upload/manage documents (per company)
-- Premium status is tracked and expires after 1 year
-- Razorpay UPI-first payment flow (no mock gateway)
-- Secure backend verification and expiry logic (company scoped)
-
-### ⚡ Background Jobs (SaaS)
-
-- Email/OTP sending via BullMQ queues
-- Scheduled document cleanup
-- Scalable, production-ready job processing (multi-tenant)
 
 ---
 
@@ -261,7 +214,7 @@ frontend/
 - `POST /api/payment/verify-payment` - Verify payment signature (company scoped)
 - `GET /api/payment/premium-status` - Check user premium status (company scoped)
 
-### Employee & Document Management (SaaS)
+### Employee & Document Management
 
 - `GET /api/employees` - List all employees (admin only, company scoped)
 - `POST /api/employees` - Create new employee record (company scoped)
@@ -273,9 +226,7 @@ frontend/
 - `GET /api/users/auth/google` - Google OAuth login
 - `GET /api/users/auth/github` - GitHub OAuth login
 
----
-
-## 📖 Key API Endpoints (2025, SaaS Edition)
+### Other Key Endpoints
 
 - **Company:** `/api/company` — company registration, onboarding, settings
 - **Onboarding:** `/api/onboarding` — city selection, video, S3 upload (company scoped)
@@ -299,4 +250,3 @@ MIT License
 📧 For any questions or suggestions, please contact: your-email@example.com
 
 ---
-
