@@ -275,6 +275,6 @@ MIT License
 
 ⭐️ **Star this repo if you find it useful!** ⭐️
 
-📧 For any questions or suggestions, please contact: your-email@example.com
+📧 For any questions or suggestions, please contact: stiwari_be23@thapar.com
 
 ---
