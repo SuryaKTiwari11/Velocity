@@ -1,6 +1,5 @@
 import { emailQ, JOBS } from "./simple.js";
 
-
 export const addOTP = async (email, otp, name = "User") => {
   try {
     const job = await emailQ.add(
@@ -8,7 +7,7 @@ export const addOTP = async (email, otp, name = "User") => {
       { email, otp, name },
       { priority: 10 }
     );
-    console.log(`OTP queued for ${email} (ID: ${job.id})`);
+    // OTP queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue OTP:", error);
@@ -23,7 +22,7 @@ export const addReset = async (email, otp, name = "User") => {
       { email, otp, name },
       { priority: 10 }
     );
-    console.log(`Reset queued for ${email} (ID: ${job.id})`);
+    // Reset queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue reset:", error);
@@ -41,7 +40,7 @@ export const addWelcome = async (email, name) => {
         delay: 5000,
       }
     );
-    console.log(`Welcome queued for ${email} (ID: ${job.id})`);
+    // Welcome queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue welcome:", error);
@@ -56,7 +55,7 @@ export const addNotify = async (email, subject, message, name = "User") => {
       { email, subject, message, name },
       { priority: 3 }
     );
-    console.log(`Notification queued for ${email} (ID: ${job.id})`);
+    // Notification queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue notification:", error);
@@ -71,7 +70,7 @@ export const addInvite = async (email, inviteToken, companyId) => {
       { email, inviteToken, companyId },
       { priority: 1 }
     );
-    console.log(`Invite queued for ${email} (ID: ${job.id})`);
+    // Invite queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue invite:", error);

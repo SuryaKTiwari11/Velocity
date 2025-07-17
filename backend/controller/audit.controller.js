@@ -2,9 +2,11 @@ import { AuditLog, LoginHistory, User } from "../model/model.js";
 
 export const getLogs = async (req, res) => {
   try {
+    // [getLogs] req.user
     const { page = 1, limit = 20, action, tableName, userId } = req.query;
 
     const whereCondition = { companyId: req.user.companyId };
+    // [getLogs] whereCondition
     if (action) whereCondition.action = action;
     if (tableName) whereCondition.tableName = tableName;
     if (userId) whereCondition.userId = userId;
@@ -30,6 +32,7 @@ export const getLogs = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("[getLogs] error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to get audit logs",

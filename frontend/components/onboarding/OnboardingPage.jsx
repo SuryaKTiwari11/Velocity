@@ -64,35 +64,23 @@ const OnboardingPage = () => {
     };
 
     const handleVideoComplete = async (videoId) => {
-        try {
-            // Track video completion
-            await onboardingApi.trackVideoProgress({
-                videoId,
-                isCompleted: true,
-                watchedDuration: onboardingData.trainingVideos.find(v => v.id === videoId)?.duration || 0,
-                totalDuration: onboardingData.trainingVideos.find(v => v.id === videoId)?.duration || 0
-            });
-
-            // Update local state and localStorage immediately
-            setCompletedVideos(prev => {
-                const updated = new Set([...prev, videoId]);
-                localStorage.setItem('onboardingProgress', JSON.stringify({
-                    completedVideos: Array.from(updated),
-                    currentVideoIndex: currentVideoIndex + 1,
-                    trainingProgress: onboardingData.trainingProgress
-                }));
-                return updated;
-            });
-            // Move to next video
-            const nextIndex = currentVideoIndex + 1;
-            if (nextIndex < onboardingData.trainingVideos.length) {
-                setCurrentVideoIndex(nextIndex);
-            }
-            // Refresh data to check if training is complete
-            setTimeout(fetchOnboardingData, 1000);
-        } catch (error) {
-            console.error('Error tracking video progress:', error);
+        // Mark video as completed locally
+        setCompletedVideos(prev => {
+            const updated = new Set([...prev, videoId]);
+            localStorage.setItem('onboardingProgress', JSON.stringify({
+                completedVideos: Array.from(updated),
+                currentVideoIndex: currentVideoIndex + 1,
+                trainingProgress: onboardingData.trainingProgress
+            }));
+            return updated;
+        });
+        // Move to next video
+        const nextIndex = currentVideoIndex + 1;
+        if (nextIndex < onboardingData.trainingVideos.length) {
+            setCurrentVideoIndex(nextIndex);
         }
+        // Refresh data to check if training is complete
+        setTimeout(fetchOnboardingData, 1000);
     };
 
     // Save progress to localStorage whenever progress changes (except when onboarding is complete)

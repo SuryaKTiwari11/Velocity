@@ -12,8 +12,12 @@ export const authSuccess = async (req, res) => {
     const token = user.token;
     res.cookie("jwt", token);
     try {
-      await autoClockIn(user.user.id, req.sessionID, req.ip);
-      // Auto clock-in for Google OAuth login
+      await autoClockIn(
+        user.user.id,
+        req.sessionID,
+        req.ip,
+        user.user.companyId
+      );
     } catch (attendanceError) {
       console.error("Google OAuth auto clock-in failed:", attendanceError);
     }
@@ -39,7 +43,7 @@ export const handleCallback = async (req, res) => {
     }
     res.cookie("jwt", token);
     try {
-      await autoClockIn(user.id, req.sessionID, req.ip);
+      await autoClockIn(user.id, req.sessionID, req.ip, user.companyId);
       // Auto clock-in for Google OAuth callback
     } catch (attendanceError) {
       console.error(

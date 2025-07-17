@@ -24,6 +24,7 @@ import SuperAdminDashboard from "../components/SuperAdminDashboard";
 import PremiumPayment from "../components/PremiumPayment";
 import ZoomMeeting from "../components/ZoomMeeting";
 import NotFound from "../components/NotFound";
+import NearbyPeople from "../components/Nearby/Nearby";
 import CompanyAdminPanel from "../components/CompanyAdminPanel";
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -35,7 +36,7 @@ import AdminAttendancePage from "./pages/AdminAttendancePage";
 import useAuthStore from "./store/authStore";
 
 const App = () => {
-  const { checkAuth } = useAuthStore();
+  const { checkAuth, user } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
@@ -66,6 +67,19 @@ const App = () => {
           element={
             <ProtectedRoute requireOnboarding={false}>
               <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/nearby"
+          element={
+            <ProtectedRoute>
+              <NearbyPeople
+                userId={user?.id}
+                latitude={user?.employeeInfo?.latitude}
+                longitude={user?.employeeInfo?.longitude}
+                companyId={user?.companyId}
+              />
             </ProtectedRoute>
           }
         />

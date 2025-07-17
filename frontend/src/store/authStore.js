@@ -6,11 +6,15 @@ const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
+      latitude: null,
+      longitude: null,
+      companyId: null,
       isAuthenticated: false,
       isAdmin: false,
       isPremium: false,
       isLoading: false,
       error: null,
+
       login: async (credentials) => {
         set({ isLoading: true, error: null });
         try {
@@ -19,11 +23,34 @@ const useAuthStore = create(
           const isAdmin = user && user.isAdmin === true;
           const isSuperAdmin = user && user.isSuperAdmin === true;
 
+          // Set companyId from user object if available
+          let companyId = user?.companyId || null;
+
+          // Get browser geolocation
+          let latitude = null;
+          let longitude = null;
+          if (navigator.geolocation) {
+            await new Promise((resolve) => {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  latitude = pos.coords.latitude;
+                  longitude = pos.coords.longitude;
+                  resolve();
+                },
+                () => resolve(),
+                { timeout: 5000 }
+              );
+            });
+          }
+
           set({
             user,
             isAdmin,
             isAuthenticated: true,
             isLoading: false,
+            latitude,
+            longitude,
+            companyId,
           });
 
           try {
@@ -67,6 +94,15 @@ const useAuthStore = create(
           };
         }
       },
+
+      setCoordinates: ({ latitude, longitude }) => {
+        set({ latitude, longitude });
+      },
+
+      setCompanyId: (companyId) => {
+        set({ companyId });
+      },
+
       ssoSuccess: async () => {
         set({ isLoading: true, error: null });
         try {
@@ -91,6 +127,7 @@ const useAuthStore = create(
           };
         }
       },
+
       signup: async (userData) => {
         set({ isLoading: true, error: null });
         try {
@@ -117,6 +154,7 @@ const useAuthStore = create(
           };
         }
       },
+
       logout: async () => {
         set({ isLoading: true });
 
@@ -141,6 +179,7 @@ const useAuthStore = create(
           });
         }
       },
+
       checkAuth: async () => {
         set({ isLoading: true });
         try {
@@ -155,6 +194,9 @@ const useAuthStore = create(
             isAdmin,
             isAuthenticated: true,
             isLoading: false,
+            latitude: user?.latitude || null,
+            longitude: user?.longitude || null,
+            companyId: user?.companyId || null,
           });
 
           // Check premium status
@@ -217,6 +259,9 @@ const useAuthStore = create(
         isAdmin: state.isAdmin,
         isAuthenticated: state.isAuthenticated,
         isPremium: state.isPremium, // Store premium status
+        latitude: state.latitude,
+        longitude: state.longitude,
+        companyId: state.companyId,
         //!this helps store int he localStorage
       }),
     }

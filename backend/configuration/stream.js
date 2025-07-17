@@ -45,7 +45,7 @@ export const createCompanyChannel = async (
   }
 };
 
-// Generate a Stream token
+
 export const generateStreamToken = (userId) => {
   try {
     if (!userId) throw new Error("User ID is required");

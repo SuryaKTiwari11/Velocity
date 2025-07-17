@@ -42,17 +42,6 @@ export const cleanupWorker = new Worker(
   }
 );
 
-cleanupWorker.on("completed", (job, result) => {
-  console.log(`Clean job ${job.id} completed:`, result);
-});
-
-cleanupWorker.on("failed", (job, err) => {
-  console.error(`Clean job ${job.id} failed:`, err.message);
-});
-
-cleanupWorker.on("error", (err) => {
-  console.error("Cleanup worker error:", err);
-});
 
 process.on("SIGTERM", async () => {
   await cleanupWorker.close();

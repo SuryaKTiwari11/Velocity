@@ -1,4 +1,4 @@
-import { genInviteToken } from "../helper/genToken.js";
+import { genToken } from "../helper/genToken.js";
 import { Invite, User } from "../model/model.js";
 import jwt from "jsonwebtoken";
 import { addInvite } from "../queues/email.js";
@@ -15,12 +15,10 @@ export const createInvite = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Email is required" });
     if (await User.findOne({ where: { email, companyId } }))
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "User with this email already exists in this company",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists in this company",
+      });
     if (
       await Invite.findOne({
         where: {
@@ -31,13 +29,11 @@ export const createInvite = async (req, res) => {
         },
       })
     )
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "An active invite already exists for this email.",
-        });
-    const inviteToken = genInviteToken(null, companyCode, companyId);
+      return res.status(400).json({
+        success: false,
+        message: "An active invite already exists for this email.",
+      });
+    const inviteToken = genToken(null, companyCode, companyId);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const invite = await Invite.create({
       companyId,
@@ -47,13 +43,11 @@ export const createInvite = async (req, res) => {
       isUsed: false,
     });
     await addInvite(email, inviteToken, companyId);
-    res
-      .status(201)
-      .json({
-        success: true,
-        data: invite,
-        message: "Invite created successfully",
-      });
+    res.status(201).json({
+      success: true,
+      data: invite,
+      message: "Invite created successfully",
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -70,13 +64,13 @@ export const validateInviteToken = async (req, res) => {
     }
 
     // Debug logging for incoming token
-    console.log("[Invite Validate] Incoming token:", inviteToken);
+    // [Invite Validate] Incoming token
 
     let decoded;
     try {
       decoded = jwt.verify(inviteToken, key);
     } catch (err) {
-      console.log("[Invite Validate] JWT verification failed:", err.message);
+      // [Invite Validate] JWT verification failed
       return res
         .status(401)
         .json({ success: false, message: "Invalid or expired invite token" });
@@ -90,42 +84,45 @@ export const validateInviteToken = async (req, res) => {
       where: { inviteToken: trimmedToken },
     });
     if (inviteRaw) {
-      console.log("[Invite Validate] Found invite by token:", {
-        inviteToken: inviteRaw.inviteToken,
-        isUsed: inviteRaw.isUsed,
-        expiresAt: inviteRaw.expiresAt,
-        type_isUsed: typeof inviteRaw.isUsed,
-      });
+      // [Invite Validate] Found invite by token
+      // Uncomment for debugging:
+      // console.log({
+      //   inviteToken: inviteRaw.inviteToken,
+      //   isUsed: inviteRaw.isUsed,
+      //   expiresAt: inviteRaw.expiresAt,
+      //   type_isUsed: typeof inviteRaw.isUsed,
+      // });
     } else {
-      console.log("[Invite Validate] No invite found by token at all.");
+      // [Invite Validate] No invite found by token at all
     }
 
     // Now do the real query (with isUsed)
     const invite = await Invite.findOne({
       where: { inviteToken: trimmedToken, isUsed: false },
     });
-
     // Log all DB tokens for debugging (remove in production)
     const allInvites = await Invite.findAll({
       attributes: ["inviteToken", "isUsed", "expiresAt"],
     });
-    console.log(
-      "[Invite Validate] All DB tokens:",
-      allInvites.map((i) => i.inviteToken)
-    );
+    // Uncomment for debugging:
+    // console.log(
+    //   "[Invite Validate] All DB tokens:",
+    //   allInvites.map((i) => i.inviteToken)
+    // );
 
     if (!invite) {
-      console.log(
-        "[Invite Validate] No invite found for token with isUsed=false:",
-        trimmedToken
-      );
+      // Uncomment for debugging:
+      // console.log(
+      //   "[Invite Validate] No invite found for token with isUsed=false:",
+      //   trimmedToken
+      // );
       return res.status(404).json({
         success: false,
         message: "Invite not found or already used (token mismatch or isUsed).",
       });
     }
     if (invite.expiresAt < new Date()) {
-      console.log("[Invite Validate] Invite expired for token:", trimmedToken);
+      // [Invite Validate] Invite expired for token
       return res
         .status(410)
         .json({ success: false, message: "Invite has expired" });
@@ -196,6 +193,7 @@ export const validateInviteAndSignup = async (req, res) => {
       name,
       companyId: invite.companyId,
       status: "active",
+      isVerified: true, // Mark as verified since this is invite-only
     });
 
     // Mark invite as used

@@ -4,14 +4,12 @@ import { JOBS } from "../queues/simple.js";
 import { emailService } from "../helper/email.js";
 
 const connection = createRedisConnection();
-
-// Email job processors
 const sendInvite = async (job) => {
   const { email, inviteToken, companyId } = job.data;
   try {
     const result = await emailService(email, inviteToken, companyId, "invite");
     if (result.success) {
-      console.log(`Invite sent to ${email}`);
+      // Invite sent
       return { success: true, messageId: result.messageId };
     } else {
       throw new Error(result.error || "Invite send failed");
@@ -27,7 +25,7 @@ const sendOTP = async (job) => {
   try {
     const result = await emailService(email, otp, name, "verification");
     if (result.success) {
-      console.log(`OTP sent to ${email}`);
+      // OTP sent
       return { success: true, messageId: result.messageId };
     } else {
       throw new Error(result.error || "OTP send failed");
@@ -43,7 +41,7 @@ const sendReset = async (job) => {
   try {
     const result = await emailService(email, otp, name, "passReset");
     if (result.success) {
-      console.log(`Reset sent to ${email}`);
+      // Reset sent
       return { success: true, messageId: result.messageId };
     } else {
       throw new Error(result.error || "Reset send failed");
@@ -57,7 +55,7 @@ const sendReset = async (job) => {
 export const emailWorker = new Worker(
   "email",
   async (job) => {
-    console.log(`Processing: ${job.name} (ID: ${job.id})`);
+    // Processing job
     switch (job.name) {
       case JOBS.OTP:
         return await sendOTP(job);
@@ -76,20 +74,9 @@ export const emailWorker = new Worker(
     removeOnFail: 100,
   }
 );
-emailWorker.on("completed", (job, result) => {
-  console.log(`Job ${job.id} completed:`, result);
-});
-
-emailWorker.on("failed", (job, err) => {
-  console.error(`Job ${job.id} failed:`, err.message);
-});
-
-emailWorker.on("error", (err) => {
-  console.error("Email worker error:", err);
-});
 
 process.on("SIGTERM", async () => {
-  console.log("Shutting down email worker...");
+  // Shutting down email worker
   await emailWorker.close();
 });
 

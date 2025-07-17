@@ -7,7 +7,6 @@ const rzp = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// Plan configurations (amounts in paise)
 const PLANS = {
   basic: {
     price: 99900,
@@ -41,12 +40,9 @@ export const createOrder = async (req, res) => {
 };
 export const verifyPayment = async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      user_id,
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
+    const userId = req.user.id;
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSig = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -57,7 +53,7 @@ export const verifyPayment = async (req, res) => {
       expiry.setFullYear(expiry.getFullYear() + 1);
       await User.update(
         { isPremium: true, premiumExpiresAt: expiry },
-        { where: { id: user_id } }
+        { where: { id: userId } }
       );
       res.json({ success: true, message: "You are now premium!" });
     } else {
@@ -88,12 +84,10 @@ export const createCompanyOrder = async (req, res) => {
   try {
     const { plan } = req.body;
     if (!PLANS[plan]) {
-      return res
-        .status(400)
-        .json({
-          error: "Invalid plan selected",
-          availablePlans: Object.keys(PLANS),
-        });
+      return res.status(400).json({
+        error: "Invalid plan selected",
+        availablePlans: Object.keys(PLANS),
+      });
     }
     const options = {
       amount: PLANS[plan].price,

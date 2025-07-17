@@ -6,7 +6,6 @@ import { createRedisConnection } from "../configuration/redis.js";
 import { getSocket } from "../configuration/socket.js";
 
 const redis = createRedisConnection();
-
 const setProgress = async (key, io, user, doc, status) => {
   await redis.set(key, status);
   io?.to(user).emit("doc-progress", { documentId: doc, status });

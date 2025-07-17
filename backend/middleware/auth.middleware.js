@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import { User } from "../model/model.js";
 import { configDotenv } from "dotenv";
+
 configDotenv();
 
 const key = process.env.JWT_SECRET;
 
-// Helper to extract token from headers or cookies
 const getToken = (req) => {
   if (req.headers.authorization) {
     return req.headers.authorization.startsWith("Bearer ")
@@ -15,7 +15,6 @@ const getToken = (req) => {
   return req.cookies?.jwt;
 };
 
-// Middleware: Protect routes (JWT authentication)
 export const protect = async (req, res, next) => {
   try {
     const token = getToken(req);
@@ -38,9 +37,12 @@ export const protect = async (req, res, next) => {
         needsVerification: true,
       });
     }
-    // Always set companyId from JWT if present, else fallback to user.companyId from DB
-    user.companyId = decoded.companyId || user.companyId;
-    req.user = user;
+
+    // Always use a plain object for req.user
+    const plainUser = user.get ? user.get({ plain: true }) : user;
+    plainUser.companyId = user.companyId || decoded.companyId;
+    plainUser.id = user.id || decoded.userID;
+    req.user = plainUser;
     next();
   } catch (error) {
     return res.status(401).json({
@@ -51,7 +53,6 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Middleware: Admin only access
 export const adminOnly = (req, res, next) => {
   if (!req.user || !req.user.isAdmin) {
     return res.status(403).json({
@@ -62,28 +63,17 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-// Middleware: Super Admin only access
 export const superAdminOnly = (req, res, next) => {
-  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
-  const superAdminGoogleId = process.env.SUPER_ADMIN_GOOGLE_ID;
-  const superAdminHash = process.env.SUPER_ADMIN_HASH;
-  // Allow super admin if email and googleId match, ignore hash if using Google SSO
-  if (
+  const { SUPER_ADMIN_EMAIL, SUPER_ADMIN_GOOGLE_ID, SUPER_ADMIN_HASH } =
+    process.env;
+  const isSuperAdmin =
     req.user &&
-    req.user.email === superAdminEmail &&
-    req.user.googleId &&
-    req.user.googleId.toString() === superAdminGoogleId
-  ) {
-    req.user.isSuperAdmin = true;
-    return next();
-  }
-  // Fallback: allow hash check for non-Google SSO (legacy/local super admin)
-  if (
-    req.user &&
-    req.user.email === superAdminEmail &&
-    superAdminHash &&
-    req.user.hash === superAdminHash
-  ) {
+    req.user.email === SUPER_ADMIN_EMAIL &&
+    ((req.user.googleId &&
+      req.user.googleId.toString() === SUPER_ADMIN_GOOGLE_ID) ||
+      (SUPER_ADMIN_HASH && req.user.hash === SUPER_ADMIN_HASH));
+
+  if (isSuperAdmin) {
     req.user.isSuperAdmin = true;
     return next();
   }
@@ -93,10 +83,9 @@ export const superAdminOnly = (req, res, next) => {
   });
 };
 
-// Middleware: Require onboarding complete (unless admin)
 export const requireOnboardingComplete = (req, res, next) => {
-  // Allow admins and super admins to bypass onboarding check
   if (req.user && (req.user.isAdmin || req.user.isSuperAdmin)) return next();
+
   if (!req.user || req.user.onboardingStatus !== "approved") {
     return res.status(403).json({
       success: false,

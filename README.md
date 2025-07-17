@@ -1,4 +1,4 @@
-# 🚀 Employee Management System (EMS) — 2025  (Now with SaaS!)
+# 🚀 Employee Management System (EMS) — 2025 (Now with SaaS!)
 
 > **Next-Gen HR, Payroll, Collaboration & SaaS Platform**
 
@@ -21,6 +21,13 @@ Welcome to the most advanced open-source Employee Management System! EMS is now 
 ---
 
 ## ✨ Features
+
+### 🤝 Connect with Colleagues Nearby
+
+- **Meet Nearby Colleagues:** Instantly find and connect with coworkers close to you for collaboration or networking.
+- **How it Works:** Uses browser geolocation and Redis GEO to show nearby employees from your company only.
+- **Using Redis GEO:** Efficiently stores and queries user locations for real-time updates.
+- **Privacy & Security:** Company-scoped search, validated location, and secure real-time updates.
 
 ### 👥 User & Company Management
 
@@ -275,6 +282,6 @@ MIT License
 
 ⭐️ **Star this repo if you find it useful!** ⭐️
 
-📧 For any questions or suggestions, please contact: your-email@example.com
+📧 For any questions or suggestions, please contact: stiwari2_be23@thapar.edu
 
 ---

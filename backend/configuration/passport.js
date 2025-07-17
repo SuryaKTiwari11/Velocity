@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrat } from "passport-google-oauth20";
 import { Strategy as GitHubStrat } from "passport-github2";
-import { User } from "../model/model.js";
+import { User, Company } from "../model/model.js";
 import { genToken } from "../helper/genToken.js";
 import { configDotenv } from "dotenv";
 import crypto from "crypto";
@@ -26,26 +26,40 @@ passport.use(
         const email = emails[0].value;
         const profilePicture = photos[0]?.value;
         let user = await User.findOne({ where: { email } });
+        // Google SSO login for email
 
-        if (user && !user.googleId) {
+        if (!user) {
+          // Only allow SSO if user already exists
+          return done(
+            new Error(
+              "SSO is only allowed for existing users. Please contact your company admin for an invite."
+            ),
+            false
+          );
+        }
+        if (!user.companyId) {
+          return done(
+            new Error(
+              "User does not belong to any company. Please contact your company admin."
+            ),
+            false
+          );
+        }
+        // Optionally update googleId/profilePicture if missing
+        if (!user.googleId) {
           await user.update({
             googleId: id,
             profilePicture: user.profilePicture || profilePicture,
           });
         }
-
-        if (!user) {
-          user = await User.create({
-            googleId: id,
-            name: displayName,
-            email,
-            profilePicture,
-            password: randomPass(),
-            isVerified: true,
-          });
+        const company = await Company.findOne({
+          where: { companyId: user.companyId },
+        });
+        // Company found
+        if (!company) {
+          return done(new Error("Company not found for user"), false);
         }
-
-        const token = genToken(user.id);
+        const token = genToken(user.id, company.companyCode, company.id);
         return done(null, { user, token });
       } catch (error) {
         console.error("Google auth error:", error);
@@ -76,26 +90,40 @@ passport.use(
         let user = await User.findOne({
           where: { email },
         });
+        // GitHub SSO login for email
 
-        if (user && !user.githubId) {
+        if (!user) {
+          // Only allow SSO if user already exists
+          return done(
+            new Error(
+              "SSO is only allowed for existing users. Please contact your company admin for an invite."
+            ),
+            false
+          );
+        }
+        if (!user.companyId) {
+          return done(
+            new Error(
+              "User does not belong to any company. Please contact your company admin."
+            ),
+            false
+          );
+        }
+        // Optionally update githubId/profilePicture if missing
+        if (!user.githubId) {
           await user.update({
             githubId: id,
             profilePicture: user.profilePicture || profilePicture,
           });
         }
-
-        if (!user) {
-          user = await User.create({
-            githubId: id,
-            name: displayName || username,
-            email,
-            profilePicture,
-            password: randomPass(),
-            isVerified: true,
-          });
+        const company = await Company.findOne({
+          where: { companyId: user.companyId },
+        });
+        // Company found
+        if (!company) {
+          return done(new Error("Company not found for user"), false);
         }
-
-        const token = genToken(user.id);
+        const token = genToken(user.id, company.companyCode, company.id);
         return done(null, { user, token });
       } catch (error) {
         console.error("GitHub auth error:", error);

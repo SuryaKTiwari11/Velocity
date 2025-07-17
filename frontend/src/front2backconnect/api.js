@@ -1,3 +1,4 @@
+// Nearby API
 import axios from "axios";
 // Axios instance
 const api = axios.create({
@@ -5,17 +6,26 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
 });
+
+// Public API instance (no credentials)
+const publicApi = axios.create({
+  baseURL: "http://localhost:3000/api",
+  headers: { "Content-Type": "application/json" },
+  withCredentials: false,
+});
+export const nearbyApi = {
+  findNearby: (data) => api.post("/nearby/nearby", data),
+  updateLocation: (data) => api.post("/nearby/update", data),
+};
 export const onboardingApi = {
   getData: () => api.get("/onboarding/data"),
   getTrainingStatus: () => api.get("/onboarding/training-status"),
-  trackVideoProgress: (data) => api.post("/onboarding/video-progress", data),
   submitDocuments: () => api.post("/onboarding/submit-documents"),
   getPendingVerifications: () =>
     api.get("/onboarding/admin/pending-verifications"),
   verifyUser: (userId, action, notes) =>
     api.patch(`/onboarding/admin/verify-user/${userId}`, { action, notes }),
-  // Dev-only: Mark a video as complete for the current user
-  markVideoComplete: (videoId) =>
+   markVideoComplete: (videoId) =>
     api.post("/onboarding/dev/mark-video-complete", { videoId }),
 };
 // Super Admin API
@@ -38,7 +48,7 @@ export const companyAdminApi = {
 
 // Invite API
 export const inviteApi = {
-  create: (email) => api.post("/invite/invite", { email }),
+  create: (email) => api.post("/invite", { email }),
   validate: (inviteToken) =>
     api.get(`/invite/validate`, { params: { inviteToken } }),
   signup: (data) => api.post("/invite/signup", data),
@@ -61,7 +71,7 @@ export const authApi = {
   login: (data) => api.post("/users/login", data),
   logout: () => api.post("/users/logout"),
   curUser: () => api.get("/users/me"),
-   googleUrl: () => "http://localhost:3000/api/users/auth/google", 
+  googleUrl: () => "http://localhost:3000/api/users/auth/google",
   githubUrl: () => "http://localhost:3000/api/users/auth/github",
   authSuccess: () => api.get("/users/auth/success"),
   forgotPassword: (email) => api.post("/users/forgot-password", { email }),
@@ -109,12 +119,6 @@ export const paymentApi = {
   status: () => api.get("/payment/premium-status"),
 };
 
-// Livekit API
-export const livekitApi = {
-  getToken: ({ room, name }) =>
-    api.post("/users/livekit-token", { room, name }),
-};
-
 // OTP API
 export const otpApi = {
   adminCleanup: () => api.post("/otp/admin/cleanup"),
@@ -122,10 +126,10 @@ export const otpApi = {
 
 // Map API
 export const mapApi = {
-  getData: () => api.get("/map/data"),
-  getUsersByCity: () => api.get("/map/users-by-city"),
-  getStats: () => api.get("/map/stats"),
-  getCities: () => api.get("/map/cities"),
+  getData: () => publicApi.get("/map/data"),
+  getUsersByCity: () => publicApi.get("/map/users-by-city"),
+  getStats: () => publicApi.get("/map/stats"),
+  getCities: () => publicApi.get("/map/cities"),
 };
 
 // Chat API
@@ -133,8 +137,8 @@ export const chatApi = {
   getStreamToken: () => api.get("/chat/token"),
   searchUsers: (query) =>
     api.get(`/users/search?q=${encodeURIComponent(query)}`),
-  upsertTargetUser: (targetUserId) =>
-    api.post(`/chat/upsert-user/${targetUserId}`),
+  upsertTargetUser: (targetUserId, companyId) =>
+    api.post(`/chat/upsert-user/${targetUserId}`, { companyId }),
 };
 
 // Attendance API
@@ -143,12 +147,8 @@ export const attendanceApi = {
   today: () => api.get("/attendance/today"),
   history: (params) => api.get("/attendance/history", { params }),
   stats: (params) => api.get("/attendance/stats", { params }),
-  // Legacy endpoints
   clockIn: () => api.post("/attendance/clock-in"),
   clockOut: () => api.post("/attendance/clock-out"),
-  getToday: () => api.get("/attendance/today"),
-  getHistory: () => api.get("/attendance/history"),
-  // Admin endpoints
   getAllAttendance: (params) => api.get("/attendance/admin/all", { params }),
   getActiveUsers: () => api.get("/attendance/admin/active"),
 };

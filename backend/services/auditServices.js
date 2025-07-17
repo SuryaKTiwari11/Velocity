@@ -1,9 +1,6 @@
 import { AuditLog, User, LoginHistory } from "../model/model.js";
-
 import requestIp from "request-ip";
-
-
-const getClientIP = (req) => requestIp.getClientIp(req) || "unknown";
+const getClientIP = (req) => requestIp.getClientIp(req) || "127.0.0.1";
 
 const logAction = async (
   userId,
@@ -19,10 +16,8 @@ const logAction = async (
       throw new Error("Missing required parameters for logging action");
     }
     const ip = getClientIP(req);
-    let companyId = null;
-    if (req && req.user && req.user.companyId) {
-      companyId = req.user.companyId;
-    }
+    const companyId = req.user.companyId || null;
+
     await AuditLog.create({
       userId,
       action,

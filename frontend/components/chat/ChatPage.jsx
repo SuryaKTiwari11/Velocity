@@ -317,8 +317,8 @@ const ChatPage = () => {
                 return;
             }
 
-            // First, upsert the target user in Stream Chat
-            await chatApi.upsertTargetUser(targetUserId);
+            // First, upsert the target user in Stream Chat, sending companyId
+            await chatApi.upsertTargetUser(targetUserId, user?.companyId);
 
             // Use your existing chatApi to get the token
             const response = await chatApi.getStreamToken();

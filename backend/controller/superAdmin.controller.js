@@ -1,6 +1,4 @@
 import { Company, User, Payment, Invite } from "../model/model.js";
-
-
 export const deleteCompany = async (req, res) => {
   try {
     const { id } = req.params;
@@ -30,7 +28,6 @@ export const getAllCompanies = async (req, res) => {
   }
 };
 
-// Get all users (paginated)
 export const getAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;

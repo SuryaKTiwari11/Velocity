@@ -56,8 +56,6 @@ const setupAssociations = (models) => {
   S3Document.belongsTo(Employee, { foreignKey: "employeeId" });
 
   // VideoProgress associations
-  User.hasMany(VideoProgress, { foreignKey: "userId" });
-  VideoProgress.belongsTo(User, { foreignKey: "userId" });
 
   // Invite associations
   Company.hasMany(Invite, { foreignKey: "companyId", as: "invites" });

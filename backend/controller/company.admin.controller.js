@@ -1,6 +1,5 @@
 import { Company, Employee, User } from "../model/model.js";
 
-// Company Usage Analytics
 export const getCompanyUsage = async (req, res) => {
   try {
     const company = await Company.findByPk(req.user.companyId);
@@ -10,13 +9,12 @@ export const getCompanyUsage = async (req, res) => {
     const employeeCount = await Employee.count({
       where: { companyId: company.companyId },
     });
-  
-    const usageStats = {}; 
+   
     res.json({
       employeeCount,
       maxEmployees: company.maxEmployees,
       plan: company.companyPlan,
-      usageStats,
+      usageStats: {},//! Placeholder for future usage stats
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -39,7 +37,6 @@ export const listAdmins = async (req, res) => {
   }
 };
 
-// Remove Admin
 export const removeAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -56,8 +53,6 @@ export const removeAdmin = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-// Subscription Status
 export const getSubscriptionStatus = async (req, res) => {
   try {
     const company = await Company.findByPk(req.user.companyId);

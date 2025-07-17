@@ -63,7 +63,7 @@ const LandingPage = () => {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold mb-2">Video Meetings</h3>
-              <p className="text-white/70">Google Meet-style video calls with LiveKit integration</p>
+              <p className="text-white/70">Google Meet-style video calls with real-time chat integration</p>
             </div>
             
             <div className="text-center text-white">

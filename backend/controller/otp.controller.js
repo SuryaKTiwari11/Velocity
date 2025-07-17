@@ -54,10 +54,10 @@ export const verifyUserOTP = async (req, res) => {
     const user = await User.findOne({ where: { email } });
     if (user) {
       await user.update({ isVerified: true });
-      console.log(`User ${email} verified`);
+      // User verified
       await cleanupOldOTPs(email);
     } else {
-      console.log(`Verified OTP but user not found`);
+      // Verified OTP but user not found
     }
     return res
       .status(200)

@@ -4,7 +4,7 @@ import { cleanQ, JOBS } from "./simple.js";
 export const addCleanup = async (hours = 24) => {
   try {
     const job = await cleanQ.add(JOBS.CLEANUP, { threshold: hours });
-    console.log(`Cleanup queued (${hours}h) (ID: ${job.id})`);
+    // Cleanup queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue cleanup:", error);
@@ -15,14 +15,13 @@ export const addCleanup = async (hours = 24) => {
 export const addSessionClean = async (hours = 168) => {
   try {
     const job = await cleanQ.add(JOBS.SESSION, { threshold: hours });
-    console.log(`Session cleanup queued (${hours}h) (ID: ${job.id})`);
+    // Session cleanup queued
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue session cleanup:", error);
     return { success: false, error: error.message };
   }
 };
-
 
 export const scheduleDaily = async () => {
   try {
@@ -47,7 +46,7 @@ export const scheduleDaily = async () => {
         removeOnFail: 10,
       }
     );
-    console.log("Recurring cleanup scheduled");
+    // Recurring cleanup scheduled
     return { success: true };
   } catch (error) {
     console.error("Failed to schedule cleanup:", error);

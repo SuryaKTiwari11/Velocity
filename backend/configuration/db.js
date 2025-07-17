@@ -23,7 +23,7 @@ const sequelize = new Sequelize(
 export const testConn = async () => {
   try {
     await sequelize.authenticate();
-    console.log(" Database connected");
+    // Database connected
     return true;
   } catch (error) {
     console.error("couldn't connect:", error);
@@ -56,17 +56,6 @@ export const createDB = async () => {
     throw err;
   } finally {
     await client.end();
-  }
-};
-
-export const initDB = async (models, force = false) => {
-  try {
-    await sequelize.sync({ force });
-    console.log(" Database syncronization");
-    return true;
-  } catch (error) {
-    console.error(" syncronization error:", error);
-    return false;
   }
 };
 

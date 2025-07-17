@@ -61,7 +61,9 @@ async function getByEmployee(employeeId) {
 async function getDownloadUrl(docId) {
   try {
     const doc = await S3Document.findByPk(docId);
-    if (!doc) return null;
+    if (!doc) {
+      throw new Error("Document not found");  
+    }
 
     const command = new GetObjectCommand({
       Bucket: doc.s3Bucket,
@@ -89,7 +91,9 @@ async function getDownloadUrl(docId) {
 async function deleteById(docId) {
   try {
     const doc = await S3Document.findByPk(docId);
-    if (!doc) return null;
+    if (!doc) {
+      throw new Error("Document not found");
+    }
 
     const command = new DeleteObjectCommand({
       Bucket: doc.s3Bucket,
@@ -137,7 +141,7 @@ async function getAll({ page = 1, limit = 10, type, status }) {
 async function updateStatus(docId, status) {
   try {
     const doc = await S3Document.findByPk(docId);
-    if (!doc) return null;
+    
 
     await doc.update({
       status,

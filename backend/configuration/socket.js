@@ -24,33 +24,27 @@ export const initSocket = (server) => {
 
   io.on("connection", (socket) => {
     socket.on("join", ({ userId, token, isAdmin, companyId }) => {
+      let uid = userId,
+        cid = companyId;
       if (token) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          socket.userId = decoded.userId;
-          socket.companyId = decoded.companyId;
+          uid = decoded.userId;
+          cid = decoded.companyId;
         } catch {
-          throw new Error("Invalid jwt token");
+          return; // Invalid token, do not join rooms
         }
-      } else {
-        socket.userId = userId;
-        socket.companyId = companyId;
       }
-
-      if (socket.userId && socket.companyId) {
-        socket.join(`user_${socket.companyId}_${socket.userId}`);
-        socket.join(`company_${socket.companyId}`);
-        if (isAdmin) socket.join(`admin_room_${socket.companyId}`);
-        emitToAdmins(
-          "user_online",
-          { userId: socket.userId },
-          socket.companyId,
-          socket.id
-        );
+      if (uid && cid) {
+        socket.userId = uid;
+        socket.companyId = cid;
+        socket.join(`user_${cid}_${uid}`);
+        socket.join(`company_${cid}`);
+        if (isAdmin) socket.join(`admin_room_${cid}`);
+        emitToAdmins("user_online", { userId: uid }, cid, socket.id);
       }
     });
 
-    //! ATTENDANCE EVENTS
     socket.on("attendance_update", (data) => {
       if (socket.companyId) {
         emitToAdmins("attendance_update", data, socket.companyId, socket.id);

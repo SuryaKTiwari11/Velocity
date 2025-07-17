@@ -49,21 +49,21 @@ export const emailEvents = new QueueEvents("email", { connection });
 export const cleanEvents = new QueueEvents("clean", { connection });
 export const documentEvents = new QueueEvents("document", { connection });
 
-emailEvents.on("completed", (job) =>
-  console.log(`Email job ${job.id} completed`)
-);
+emailEvents.on("completed", (job) => {
+  // Email job completed
+});
 emailEvents.on("failed", (job, err) =>
   console.error(`Email job ${job.id} failed:`, err)
 );
-cleanEvents.on("completed", (job) =>
-  console.log(`Clean job ${job.id} completed`)
-);
+cleanEvents.on("completed", (job) => {
+  // Clean job completed
+});
 cleanEvents.on("failed", (job, err) =>
   console.error(`Clean job ${job.id} failed:`, err)
 );
-documentEvents.on("completed", (job) =>
-  console.log(`Document job ${job.id} completed`)
-);
+documentEvents.on("completed", (job) => {
+  // Document job completed
+});
 documentEvents.on("failed", (job, err) =>
   console.error(`Document job ${job.id} failed:`, err)
 );
@@ -73,7 +73,7 @@ cleanQ.on("error", (err) => console.error("Clean queue error:", err));
 documentQueue.on("error", (err) => console.error("Document queue error:", err));
 
 process.on("SIGTERM", async () => {
-  console.log("Shutting down queues...");
+  // Shutting down queues
   await emailQ.close();
   await cleanQ.close();
   await documentQueue.close();

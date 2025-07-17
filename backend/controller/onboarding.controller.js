@@ -1,32 +1,5 @@
-import { VideoProgress, User, S3Document } from "../model/model.js";
+import { User, S3Document } from "../model/model.js";
 
-// Predefined training videos
-const TRAINING_VIDEOS = [
-  {
-    id: "video1",
-    title: "Company Introduction",
-    duration: 300,
-    youtubeId: "dQw4w9WgXcQ",
-  },
-  {
-    id: "video2",
-    title: "Safety Guidelines",
-    duration: 450,
-    youtubeId: "dQw4w9WgXcQ",
-  },
-  {
-    id: "video3",
-    title: "HR Policies",
-    duration: 600,
-    youtubeId: "dQw4w9WgXcQ",
-  },
-  {
-    id: "video4",
-    title: "Code of Conduct",
-    duration: 400,
-    youtubeId: "dQw4w9WgXcQ",
-  },
-];
 
 export const getOnBoardingData = async (req, res) => {
   try {
@@ -44,106 +17,22 @@ export const getOnBoardingData = async (req, res) => {
         .status(404)
         .json({ message: "User not found for this company" });
     }
-    const progressData = await VideoProgress.findAll({
-      where: { userId, companyId },
-    });
+    // No video progress tracking needed
     const documents = await S3Document.findAll({
       where: { userId, companyId },
     });
 
-    // Calculate overall progress
-    const completedVideos = progressData.filter((p) => p.isCompleted).length;
-    const trainingProgress = (completedVideos / TRAINING_VIDEOS.length) * 100;
-
+    // Remove trainingVideos, isTrainingVideoDone, trainingProgress
     res.status(200).json({
       user: {
         onboardingStatus: user.onboardingStatus,
-        isTrainingVideoDone: user.isTrainingVideoDone,
         isDocumentSubmitted: user.isDocumentSubmitted,
         isDocumentsApproved: user.isDocumentsApproved,
       },
-      progressData,
       documents,
-      trainingVideos: TRAINING_VIDEOS,
-      trainingProgress: Math.round(trainingProgress),
     });
   } catch (error) {
     console.error("Error fetching onboarding data:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const trainingStatus = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const companyId = req.user?.companyId;
-    if (!userId || !companyId) {
-      return res
-        .status(400)
-        .json({ message: "User ID and company ID are required" });
-    }
-
-    const progressData = await VideoProgress.findAll({
-      where: { userId, companyId },
-    });
-    const completedVideos = progressData.filter((p) => p.isCompleted);
-    const isTrainingCompleted =
-      completedVideos.length >= TRAINING_VIDEOS.length;
-
-    // Update user status if training is completed
-    if (isTrainingCompleted) {
-      await User.update(
-        {
-          isTrainingVideoDone: true,
-          onboardingStatus: "document_submission",
-        },
-        { where: { id: userId, companyId } }
-      );
-    }
-
-    res.status(200).json({
-      isTrainingCompleted,
-      completedCount: completedVideos.length,
-      totalVideos: TRAINING_VIDEOS.length,
-      progress: Math.round(
-        (completedVideos.length / TRAINING_VIDEOS.length) * 100
-      ),
-    });
-  } catch (error) {
-    console.error("Error fetching training status:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-export const trackVideoProgress = async (req, res) => {
-  try {
-    const userId = req.user?.id;
-    const companyId = req.user?.companyId;
-    const { videoId, watchedDuration, totalDuration, isCompleted } = req.body;
-
-    if (!userId || !companyId || !videoId) {
-      return res
-        .status(400)
-        .json({ message: "User ID, company ID, and video ID are required" });
-    }
-
-    const [progress, created] = await VideoProgress.upsert({
-      userId,
-      companyId,
-      videoId,
-      watchedDuration: watchedDuration || 0,
-      totalDuration: totalDuration || 0,
-      isCompleted: isCompleted || false,
-      watchedAt: new Date(),
-    });
-
-    res.status(200).json({
-      message: "Video progress updated",
-      progress,
-      created,
-    });
-  } catch (error) {
-    console.error("Error tracking video progress:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -158,13 +47,8 @@ export const submitDocuments = async (req, res) => {
         .json({ message: "User ID and company ID are required" });
     }
 
-    // Check if training is completed
+    // Remove training completion check
     const user = await User.findOne({ where: { id: userId, companyId } });
-    if (!user || !user.isTrainingVideoDone) {
-      return res.status(400).json({
-        message: "Please complete training videos before submitting documents",
-      });
-    }
 
     // Check if user has uploaded at least one document
     const userDocuments = await S3Document.findAll({
@@ -212,7 +96,6 @@ export const getVerificationQueue = async (req, res) => {
         "name",
         "email",
         "onboardingStatus",
-        "isTrainingVideoDone",
         "createdAt",
       ],
       include: [

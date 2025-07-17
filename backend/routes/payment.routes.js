@@ -14,7 +14,6 @@ import {
 
 const router = express.Router();
 
-// User-level payment
 router.post("/create-order", protect, requireOnboardingComplete, createOrder);
 router.post(
   "/verify-payment",
@@ -24,7 +23,6 @@ router.post(
 );
 router.get("/premium-status", protect, checkPremium);
 
-// Company-level payment
 router.post("/company/create-order", protect, createCompanyOrder);
 router.post("/company/verify-payment", protect, verifyCompanyPayment);
 

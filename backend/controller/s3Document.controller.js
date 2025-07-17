@@ -27,7 +27,7 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = "employee-documents";
 
-// Upload file - matches frontend: upload: (formData) => api.post("/s3-documents/upload", formData)
+// Upload file
 export const uploadFile = async (req, res) => {
   try {
     const { title, type } = req.body;
@@ -37,7 +37,6 @@ export const uploadFile = async (req, res) => {
         .status(400)
         .json({ success: false, message: "No file provided" });
     }
-    // Check if file exists before streaming
     if (!fs.existsSync(file.path)) {
       return res
         .status(500)
@@ -46,7 +45,6 @@ export const uploadFile = async (req, res) => {
     const filename = `${Date.now()}_${file.originalname}`;
     const key = `documents/${req.user.id}/${filename}`;
 
-    // Use Upload class with file stream for disk storage
     const fileStream = fs.createReadStream(file.path);
     const upload = new Upload({
       client: s3Client,
@@ -57,10 +55,6 @@ export const uploadFile = async (req, res) => {
         ContentType: file.mimetype,
       },
     });
-    // Optionally log progress
-    // upload.on('httpUploadProgress', (progress) => {
-    //   console.log('Progress:', progress);
-    // });
     await upload.done();
 
     const document = await S3Document.create({
@@ -79,7 +73,6 @@ export const uploadFile = async (req, res) => {
       companyId: req.user.companyId,
       status: "uploaded",
     });
-    // Add a job to the document processing queue
     await documentQueue.add("process-document", { documentId: document.id });
     await logAction(
       req.user.id,
@@ -105,7 +98,7 @@ export const uploadFile = async (req, res) => {
   }
 };
 
-// Get user's documents - matches frontend: list: () => api.get("/s3-documents/")
+// Get user's documents
 export const getFiles = async (req, res) => {
   try {
     const { employeeId } = req.params;
@@ -135,7 +128,7 @@ export const getFiles = async (req, res) => {
   }
 };
 
-// Download file - matches frontend: download: (docId) => api.get(`/s3-documents/${docId}/download`)
+// Download file
 export const downloadFile = async (req, res) => {
   try {
     const { id } = req.params;
@@ -177,7 +170,7 @@ export const downloadFile = async (req, res) => {
   }
 };
 
-// Delete file - matches frontend: delete: (docId) => api.delete(`/s3-documents/${docId}`)
+// Delete file
 export const deleteFile = async (req, res) => {
   try {
     const { id } = req.params;
@@ -201,18 +194,16 @@ export const deleteFile = async (req, res) => {
     await s3Client.send(
       new DeleteObjectCommand({ Bucket: BUCKET_NAME, Key: document.s3Key })
     );
+    await logAction(
+      req.user.id,
+      "DELETE_DOCUMENT",
+      "S3Document",
+      id,
+      document.dataValues,
+      null,
+      req
+    );
     await document.destroy();
-    try {
-      await logAction(
-        req.user.id,
-        "DELETE_DOCUMENT",
-        "S3Document",
-        id,
-        document.dataValues,
-        null,
-        req
-      );
-    } catch (logError) {}
     res.json({ success: true, message: "Document deleted successfully" });
   } catch (error) {
     res
@@ -221,7 +212,7 @@ export const deleteFile = async (req, res) => {
   }
 };
 
-// Get all files (admin) - matches frontend route in s3Document.routes.js
+// Get all files (admin)
 export const getAllFiles = async (req, res) => {
   try {
     const { page = 1, limit = 10, type, status } = req.query;
@@ -254,7 +245,7 @@ export const getAllFiles = async (req, res) => {
   }
 };
 
-// Update file status - matches frontend API
+// Update file status
 export const updateFileStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,7 +281,6 @@ export const updateFileStatus = async (req, res) => {
   }
 };
 
-// Health check
 export const healthCheck = async (req, res) => {
   try {
     const headBucketCommand = new HeadBucketCommand({ Bucket: BUCKET_NAME });

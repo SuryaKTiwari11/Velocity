@@ -12,23 +12,15 @@ import {
   protect,
   requireOnboardingComplete,
 } from "../middleware/auth.middleware.js";
-
-import { upload } from "../configuration/s3Config.js"; // Import the multer upload middleware
+import { upload } from "../configuration/s3Config.js";
 
 const router = express.Router();
 
 router.get("/health", healthCheck);
-
-// Basic auth for document uploads (allow during onboarding)
 router.post("/upload", protect, upload.single("document"), uploadFile);
-router.get("/", protect, getFiles); // Allow users to see their own documents
-
-// Download is allowed for reviewing during onboarding
+router.get("/", protect, getFiles);
 router.get("/:id/download", protect, downloadFile);
-
-// These require full onboarding completion
 router.get("/employee/:employeeId", requireOnboardingComplete, getFiles);
-// Allow admins and onboarding users to delete documents (no onboarding check)
 router.delete("/:id", protect, deleteFile);
 router.get("/all", requireOnboardingComplete, getAllFiles);
 router.put("/:id/status", requireOnboardingComplete, updateFileStatus);

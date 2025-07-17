@@ -66,7 +66,7 @@ const emailService = async (
   try {
     return await otpMail(email, otp, name, purpose);
   } catch (err) {
-    console.log(err);
+    // email error
     return {
       success: false,
       error: err.message,

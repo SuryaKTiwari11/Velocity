@@ -14,7 +14,6 @@ export const getStreamToken = async (req, res) => {
 
     await upsertStreamUser(userId, userData, companyId);
 
-
     const token = generateStreamToken(userId);
     if (!token) {
       return res
@@ -32,8 +31,10 @@ export const getStreamToken = async (req, res) => {
 export const upsertTargetUser = async (req, res) => {
   try {
     const { targetUserId } = req.params;
-
-      const companyId = req.user.companyId;
+    const companyId = req.user.companyId;
+    if (!companyId) {
+      return res.status(400).json({ message: "companyId is required" });
+    }
     const targetUser = await User.findOne({
       where: { id: targetUserId, companyId },
     });
@@ -42,14 +43,10 @@ export const upsertTargetUser = async (req, res) => {
         .status(404)
         .json({ message: "Target user not found or not in your company" });
     }
-
-    
     const targetUserData = {
       name: targetUser.name || targetUser.email,
     };
-
-    await upsertStreamUser(targetUserId.toString(), targetUserData);
-
+    await upsertStreamUser(targetUserId.toString(), targetUserData, companyId);
     return res.status(200).json({
       message: "Target user upserted successfully",
       user: {

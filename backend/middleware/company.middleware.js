@@ -18,7 +18,7 @@ export const authenticateCompany = async (req, res, next) => {
         .status(401)
         .json({ message: "Invalid or expired authentication token" });
     }
-    // Use companyCode for lookup, match model field name
+ 
     const company = await Company.findOne({
       where: { companyCode: decoded.companyCode },
     });

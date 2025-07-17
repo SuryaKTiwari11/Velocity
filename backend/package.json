@@ -30,13 +30,11 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
-    "livekit-server-sdk": "^2.13.1",
     "loadash": "^1.0.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.0",
     "nodemailer": "^7.0.3",
-    "nodemon": "^3.1.10",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
@@ -45,9 +43,12 @@
     "razorpay": "^2.9.6",
     "request-ip": "^3.3.0",
     "sequelize": "^6.37.7",
-    "sequelize-cli": "^6.6.3",
     "socket.io": "^4.8.1",
     "stream-chat": "^9.10.0",
     "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3"
   }
 }

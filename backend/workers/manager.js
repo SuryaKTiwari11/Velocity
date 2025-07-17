@@ -5,28 +5,24 @@ import documentWorker from "./document.worker.js";
 export const workers = [emailWorker, cleanupWorker, documentWorker];
 
 export const start = () => {
-  console.log("Starting workers...");
   workers.forEach((worker, i) => {
-    console.log(`Worker ${i + 1}: ${worker.name}`);
+    // Worker started
   });
-  console.log(`Total: ${workers.length} workers`);
+  // Total workers
   return workers;
 };
 
 export const stop = async () => {
-  console.log("Stopping workers...");
-
   const promises = workers.map(async (worker) => {
     try {
       await worker.close();
-      console.log(`${worker.name} stopped`);
+      // Worker stopped
     } catch (error) {
       console.error(`${worker.name} stop failed:`, error);
     }
   });
 
   await Promise.all(promises);
-  console.log("All workers stopped");
 };
 
 export const status = () => {

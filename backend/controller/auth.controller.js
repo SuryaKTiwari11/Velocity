@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import { sendOTP } from "../helper/otpService.js";
 import { getClientIP, logAction, logLogin } from "../services/auditServices.js";
 import * as AttendanceService from "../services/attendanceService.js";
-import { where } from "sequelize";
 
 const userRes = (usr) => ({
   id: usr.id,
@@ -15,10 +14,9 @@ const userRes = (usr) => ({
   isVerified: usr.isVerified,
   profilePicture: usr.profilePicture,
   onboardingStatus: usr.onboardingStatus,
-  isTrainingVideoDone: usr.isTrainingVideoDone,
   isDocumentSubmitted: usr.isDocumentSubmitted,
   isDocumentsApproved: usr.isDocumentsApproved,
-  videoProgress: usr.videoProgress,
+  companyId: usr.companyId,
 });
 
 export const signUp = async (req, res) => {
@@ -49,11 +47,11 @@ export const signUp = async (req, res) => {
       position: "not assigned yet",
       department: "not assigned yet",
       salary: 0,
-    }).catch(() => {});
+    });
 
     const token = genToken(user.id, res);
 
-    sendOTP(email).catch(() => {});
+    sendOTP(email);
 
     await logAction(user.id, "CREATE", "User", user.id, null, user, req);
 
@@ -116,9 +114,17 @@ export const login = async (req, res) => {
     try {
       const sessionId = req.sessionID || token;
       const ipAddress = getClientIP(req);
-      await AttendanceService.autoClockIn(usr.id, sessionId, ipAddress);
-    } catch {}
+      await AttendanceService.autoClockIn(
+        usr.id,
+        sessionId,
+        ipAddress,
+        company.companyId
+      );
+    } catch (err) {
+      console.error("Auto clock-in failed:", err);
+    }
 
+    usr.companyId = company.companyId;
     res.status(200).json({
       success: true,
       msg: "login ok",
@@ -141,6 +147,9 @@ export const logout = async (req, res) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         userId = decoded.userID;
+        if (!req.user) req.user = {};
+        if (!req.user.companyId && decoded.companyId)
+          req.user.companyId = decoded.companyId;
         await logAction(
           decoded.userID,
           "LOGOUT",
@@ -150,7 +159,9 @@ export const logout = async (req, res) => {
           null,
           req
         );
-      } catch {}
+      } catch (err) {
+        console.error("Logout token decode/logAction failed:", err);
+      }
     }
 
     if (!userId && req.user) {
@@ -161,7 +172,9 @@ export const logout = async (req, res) => {
       try {
         const sessionId = req.sessionID || token;
         await AttendanceService.autoClockOut(userId, sessionId);
-      } catch {}
+      } catch (err) {
+        console.error("Auto clock-out failed:", err);
+      }
     }
 
     res.cookie("jwt", "", {

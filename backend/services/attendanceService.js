@@ -2,7 +2,13 @@ import { Attendance, User } from "../model/model.js";
 import { Op } from "sequelize";
 import { io } from "../index.js";
 
-async function autoClockIn(userId, sessionId, ipAddress = null) {
+// FIXED: autoClockIn now requires companyId and always sets it
+async function autoClockIn(
+  userId,
+  sessionId,
+  ipAddress = null,
+  companyId = null
+) {
   try {
     const today = new Date().toISOString().split("T")[0];
 
@@ -13,7 +19,7 @@ async function autoClockIn(userId, sessionId, ipAddress = null) {
     if (existing) {
       if (existing.isActive) {
         await existing.update({ sessionId });
-        console.log(`User ${userId} already clocked in, session updated`);
+        // User already clocked in, session updated
         return existing;
       } else {
         const clockInTime = new Date();
@@ -25,7 +31,7 @@ async function autoClockIn(userId, sessionId, ipAddress = null) {
           totalHours: 0,
         });
         emitAttendanceUpdate(userId, "clock-in", existing);
-        console.log(`User ${userId} clocked in again at ${clockInTime}`);
+        // User clocked in again
         return existing;
       }
     }
@@ -33,6 +39,7 @@ async function autoClockIn(userId, sessionId, ipAddress = null) {
     // New clock in
     const attendance = await Attendance.create({
       userId,
+      companyId, // Ensure companyId is always set
       clockInTime: new Date(),
       date: today,
       isActive: true,
@@ -42,7 +49,7 @@ async function autoClockIn(userId, sessionId, ipAddress = null) {
     });
 
     emitAttendanceUpdate(userId, "clock-in", attendance);
-    console.log(`User ${userId} clocked in at ${new Date()}`);
+    // User clocked in
     return attendance;
   } catch (err) {
     console.error("Clock-in error:", err);
@@ -67,7 +74,7 @@ async function autoClockOut(userId, sessionId = null) {
     }
 
     if (!attendance) {
-      console.log(`No active attendance for user ${userId}`);
+      // No active attendance for user
       return null;
     }
 
@@ -81,7 +88,7 @@ async function autoClockOut(userId, sessionId = null) {
     });
 
     emitAttendanceUpdate(userId, "clock-out", attendance);
-    console.log(`User ${userId} clocked out, worked ${totalHours} hours`);
+    // User clocked out
     return attendance;
   } catch (err) {
     console.error("Clock-out error:", err);
@@ -97,7 +104,7 @@ async function handleSessionTimeout(sessionId) {
 
     if (attendance) {
       await autoClockOut(attendance.userId, sessionId);
-      console.log(`Session timeout for user ${attendance.userId}`);
+      // Session timeout for user
     }
   } catch (err) {
     console.error("Session timeout error:", err);
@@ -240,7 +247,7 @@ async function cleanupOldSessions() {
       await autoClockOut(attendance.userId, attendance.sessionId);
     }
 
-    console.log(`Cleaned up ${oldActiveSessions.length} old sessions`);
+    // Cleaned up old sessions
   } catch (err) {
     console.error("Cleanup error:", err);
   }

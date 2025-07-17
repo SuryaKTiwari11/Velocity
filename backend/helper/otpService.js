@@ -12,7 +12,8 @@ const generateOTP = () => {
 const sendOTP = async (email, purpose = "verification") => {
   try {
     await OTP.update(
-      { verified: true }, {
+      { verified: true },
+      {
         where: {
           email,
           purpose,
@@ -34,7 +35,7 @@ const sendOTP = async (email, purpose = "verification") => {
     const emailRes = await emailService(email, otp, "User", purpose);
 
     if (emailRes.success) {
-      console.log("OTP email sent:", emailRes.url);
+      // OTP email sent
       return {
         success: true,
         previewUrl: emailRes.url,
@@ -56,18 +57,13 @@ const cleanupOldOTPs = async (email = null) => {
   try {
     const whereCondition = {
       [Op.or]: [
-        { expiresAt: { [Op.lt]: new Date() } }, 
+        { expiresAt: { [Op.lt]: new Date() } },
         {
           verified: true,
           createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        }, 
+        },
       ],
     };
-
-   
-    if (email) {
-      whereCondition.email = email;
-    }
 
     await OTP.destroy({ where: whereCondition });
   } catch (err) {
@@ -77,7 +73,6 @@ const cleanupOldOTPs = async (email = null) => {
 
 const verifyOTP = async (email, otp, purpose = "verification") => {
   try {
- 
     await cleanupOldOTPs(email);
 
     const otpRec = await OTP.findOne({
