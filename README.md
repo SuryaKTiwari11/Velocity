@@ -1,26 +1,22 @@
-<div align="center">
+# ⚡ VELOCITY — Employee Management System (EMS) SaaS Platform
 
-  # ⚡ VELOCITY — Employee Management System (EMS) SaaS Platform
-    <img src="./PREVIEW.jpeg" alt="VELOCITY Preview" />
+<p align="center">
+  <img src="./PREVIEW.jpeg" alt="VELOCITY Preview"  style="border-radius: 16px; box-shadow: 0 4px 24px #0002; margin-bottom: 1rem;" />
+</p>
 
-  **The most advanced open-source Employee Management System for startups, enterprises, and HR tech builders.**
-  
-  *Multi-tenant SaaS, real-time collaboration, premium payments, advanced security, and more.*
+<p align="center"><b>The most advanced open-source Employee Management System for startups, enterprises, and HR tech builders.</b></p>
+<p align="center"><i>Multi-tenant SaaS, real-time collaboration, premium payments, advanced security, and more.</i></p>
 
-
-  <div align="center" color="white" style="margin: 20px 0;">
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Node.js" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg" alt="Express" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" alt="PostgreSQL" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" alt="Redis" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aws/aws-original.svg" alt="AWS S3" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" alt="TailwindCSS" width="40" />
-    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="40" />
-
-  </div>
-  
-</div>
+<p align="center">
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Node.js" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg" alt="Express" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg" alt="PostgreSQL" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg" alt="Redis" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/aws/aws-original.svg" alt="AWS S3" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-plain.svg" alt="TailwindCSS" width="40" />
+  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" width="40" />
+</p>
 
 ---
 
@@ -39,6 +35,7 @@ Built with modern technologies to solve complex HR challenges through automation
 **Challenge**: Traditional HR systems lack real-time collaboration, secure document management, and scalable multi-tenant architecture for growing organizations.
 
 **Solution**: Developed a comprehensive SaaS platform that combines:
+
 - Multi-tenant architecture for enterprise scalability
 - Real-time features for instant collaboration
 - Secure document management with automated workflows
@@ -50,8 +47,9 @@ Built with modern technologies to solve complex HR challenges through automation
 ## 🚀 **Key Features & Technical Achievements**
 
 ### **🏢 SaaS-Ready Multi-Tenant Architecture**
+
 - **Problem Solved**: Built scalable system supporting multiple companies with isolated data
-- **Technical Implementation**: 
+- **Technical Implementation**:
   - Company-scoped database queries with tenant isolation
   - Shared infrastructure with per-company data segregation
   - Built-in onboarding flow for new organizations
@@ -59,6 +57,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Impact**: Enables horizontal scaling and reduces infrastructure costs per tenant
 
 ### **🛡️ Super Admin Console**
+
 - **Centralized Management**: Platform-wide oversight for all tenants
 - **Key Features**:
   - Monitor and onboard new companies
@@ -68,6 +67,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Business Value**: Streamlines SaaS operations and reduces manual management overhead
 
 ### **🎓 Modern Onboarding Experience**
+
 - **City Selection**: Location-based setup for regional compliance
 - **Training Video Integration**: Interactive onboarding with educational content
 - **S3 KYC Upload**: Secure document upload for know-your-customer verification
@@ -75,6 +75,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Technical Stack**: React components + AWS S3 + automated email notifications
 
 ### **🔐 Invite-Only Signup System**
+
 - **Enhanced Privacy**: Token-based invitation workflow
 - **Security Benefits**: Only authorized users can join companies
 - **Technical Implementation**:
@@ -84,6 +85,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Impact**: Prevents unauthorized access and maintains data integrity
 
 ### **⚡ Real-Time Attendance Tracking**
+
 - **Live Attendance Marking**: WebSocket-based instant status updates
 - **Real-Time Dashboard**: Monitor attendance across teams and locations
 - **Key Features**:
@@ -94,6 +96,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Technical Stack**: Socket.IO + Redis for real-time synchronization
 
 ### **☁️ S3 Document Management System**
+
 - **Secure File Operations**: Upload, download, admin review, and cleanup
 - **LocalStack Compatibility**: Development environment support
 - **Advanced Features**:
@@ -104,6 +107,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Technical Implementation**: AWS S3 SDK + multer + background job processing
 
 ### **📊 Admin Dashboard & Analytics**
+
 - **Document Management**: Approve/reject/download documents
 - **Real-Time Analytics**: Live metrics and reporting
 - **Audit Logs**: Complete action tracking and compliance
@@ -114,6 +118,7 @@ Built with modern technologies to solve complex HR challenges through automation
   - System health monitoring
 
 ### **💳 Premium Payment Processing**
+
 - **Razorpay Integration**: UPI-first payment flow (no mock gateway)
 - **Premium Logic**: 1-year expiry with automated renewal
 - **Security Features**:
@@ -124,6 +129,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Business Model**: Freemium SaaS with premium document features
 
 ### **🎥 Video Calling System**
+
 - **LiveKit Integration**: Modern video meetings for premium users
 - **Features**:
   - **Lobby System**: Create or join meetings with single click
@@ -134,6 +140,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Security**: Secure token generation via backend
 
 ### **💬 Real-Time Chat & Communication**
+
 - **Stream Chat Integration**: Professional chat experience
 - **Advanced Features**:
   - Video & audio calls with invitation cards
@@ -144,6 +151,7 @@ Built with modern technologies to solve complex HR challenges through automation
   - Modern React components with error boundaries
 
 ### **🗺️ Location & Mapping Features**
+
 - **Connect with Nearby Colleagues**: Redis GEO-based proximity search
 - **How it Works**:
   - Browser geolocation API integration
@@ -154,15 +162,17 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Use Cases**: Networking, collaboration, office space optimization
 
 ### **⚡ Real-Time Document Uploads & Auto-Refresh**
+
 - **Socket.IO Integration**: Real-time upload progress tracking
 - **Auto-Refresh**: UI updates document list after processing
-- **User Experience**: 
+- **User Experience**:
   - Progress indicators during upload
   - Instant feedback on completion
   - Error handling with retry mechanisms
 - **Technical Implementation**: WebSocket events + React state management
 
 ### **🤖 Background Jobs & Automation**
+
 - **BullMQ + Redis**: Robust job queue system
 - **Automated Tasks**:
   - Email/OTP queuing and delivery
@@ -172,6 +182,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Reliability**: Job retries, failure handling, and monitoring
 
 ### **🔒 Advanced Security Features**
+
 - **Multi-Layer Security**:
   - JWT-based authentication with refresh tokens
   - Password hashing with bcrypt
@@ -182,6 +193,7 @@ Built with modern technologies to solve complex HR challenges through automation
 - **Compliance**: Audit logs and session management
 
 ### **🚀 Modern Development Practices**
+
 - **Scalable Architecture**: Multi-tenant with separation of concerns
 - **Code Quality**:
   - Modular, maintainable codebase
@@ -199,6 +211,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **Frontend**
+
 - **React 19.x** - Component-based UI architecture
 - **TailwindCSS 4.x** - Utility-first styling framework
 - **Zustand** - Lightweight state management
@@ -212,6 +225,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **Backend**
+
 - **Node.js + Express.js** - RESTful API server
 - **PostgreSQL** - Relational database
 - **Sequelize ORM** - Database modeling and migrations
@@ -226,6 +240,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **Authentication & Security**
+
 - **Passport.js** - Authentication strategies
 - **JWT** - Stateless token authentication
 - **bcrypt** - Password hashing
@@ -237,6 +252,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **Third-Party Integrations**
+
 - **Razorpay** - Payment processing (UPI-first)
 - **Stream Chat** - Real-time messaging platform
 - **LiveKit** - Video conferencing solution
@@ -250,6 +266,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **DevOps & Tools**
+
 - **Docker** - Containerization
 - **LocalStack** - AWS service mocking
 - **ESLint** - Code quality and consistency
@@ -261,6 +278,7 @@ Built with modern technologies to solve complex HR challenges through automation
 <td valign="top" width="50%">
 
 ### **Database & Caching**
+
 - **PostgreSQL 14+** - Primary database
 - **Redis 6+** - Caching and real-time features
 - **Sequelize Migrations** - Database versioning
@@ -301,11 +319,13 @@ Built with modern technologies to solve complex HR challenges through automation
 ## ⚡ **Quick Start**
 
 ### **Prerequisites**
+
 ```bash
 Node.js 18+ | PostgreSQL 14+ | Redis 6+ | AWS Account (Optional)
 ```
 
 ### **Installation**
+
 ```bash
 # Clone repository
 git clone https://github.com/SuryaKTiwari11/velocity-ems.git
@@ -332,6 +352,7 @@ npm run dev
 ```
 
 ### **Environment Configuration**
+
 ```env
 # Database Configuration
 DATABASE_URL=postgresql://user:pass@localhost:5432/velocity_ems
@@ -386,8 +407,8 @@ FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:3000
 ```
 
-
 ### **Docker Deployment**
+
 ```dockerfile
 # Multi-stage build for optimized images
 FROM node:18-alpine AS builder
@@ -402,9 +423,11 @@ COPY . .
 EXPOSE 3000
 CMD ["npm", "start"]
 ```
+
 ## 📄 **API Documentation**
 
 ### **Authentication Endpoints**
+
 ```
 POST /api/users/signup          # User registration via invitation
 POST /api/users/login           # User authentication
@@ -415,6 +438,7 @@ POST /api/users/reset-password  # Password reset confirmation
 ```
 
 ### **Company Management**
+
 ```
 POST /api/company/register      # Company registration
 GET  /api/company/profile      # Company profile
@@ -423,6 +447,7 @@ POST /api/company/invite       # Send user invitation
 ```
 
 ### **Employee Operations**
+
 ```
 GET    /api/employees          # List company employees
 POST   /api/employees          # Create employee record
@@ -433,6 +458,7 @@ GET    /api/employees/nearby   # Find nearby colleagues
 ```
 
 ### **Attendance Management**
+
 ```
 POST /api/attendance/mark      # Mark attendance
 GET  /api/attendance/today     # Today's attendance status
@@ -441,6 +467,7 @@ GET  /api/attendance/history   # Attendance history
 ```
 
 ### **Document Management**
+
 ```
 GET    /api/documents          # List user documents
 POST   /api/documents/upload   # Upload document
@@ -450,6 +477,7 @@ POST   /api/documents/review   # Admin review action
 ```
 
 ### **Payment & Premium**
+
 ```
 POST /api/payment/create-order # Create payment order
 POST /api/payment/verify       # Verify payment
@@ -458,6 +486,7 @@ GET  /api/payment/history      # Payment history
 ```
 
 ### **Real-Time Features**
+
 ```
 WebSocket Events:
 - attendance-updated           # Live attendance changes
@@ -468,6 +497,7 @@ WebSocket Events:
 ```
 
 ### **Super Admin Operations**
+
 ```
 GET  /api/superadmin/tenants   # List all companies
 POST /api/superadmin/onboard   # Onboard new company
@@ -483,18 +513,18 @@ Complete interactive API documentation is available at `/api/docs` when running 
 
 <div align="center">
 
-| Metric | Value |
-|--------|--------|
-| **Lines of Code** | 15,000+ |
-| **API Endpoints** | 40+ |
-| **Database Tables** | 12 |
-| **Real-Time Features** | 8 |
-| **Third-Party Integrations** | 6 |
-| **Authentication Methods** | 3 |
-| **Payment Gateways** | 1 |
-| **File Upload Types** | Multiple |
-| **Supported Languages** | English (Extensible) |
-| **Browser Support** | Modern browsers |
+| Metric                       | Value                |
+| ---------------------------- | -------------------- |
+| **Lines of Code**            | 15,000+              |
+| **API Endpoints**            | 40+                  |
+| **Database Tables**          | 12                   |
+| **Real-Time Features**       | 8                    |
+| **Third-Party Integrations** | 6                    |
+| **Authentication Methods**   | 3                    |
+| **Payment Gateways**         | 1                    |
+| **File Upload Types**        | Multiple             |
+| **Supported Languages**      | English (Extensible) |
+| **Browser Support**          | Modern browsers      |
 
 </div>
 
@@ -509,8 +539,6 @@ Complete interactive API documentation is available at `/api/docs` when running 
 **LinkedIn**: [Connect with me](https://linkedin.com/in/yourprofile)  
 **Portfolio**: [View my work](https://yourportfolio.com)  
 **GitHub**: [Follow for updates](https://github.com/Sur)
-
-
 
 ## 📄 **License**
 
