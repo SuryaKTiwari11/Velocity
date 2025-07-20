@@ -42,6 +42,12 @@ const Navbar = () => {
                 <button className="bg-purple-600 text-white px-2 py-1 text-sm">Documents</button>
               </Link>
             )}
+            {/* Nearby link for onboarded users */}
+            {user?.onboardingStatus === 'approved' && (
+              <Link to="/nearby">
+                <button className="bg-pink-500 text-white px-2 py-1 text-sm">🧭 Nearby</button>
+              </Link>
+            )}
             {/* Chat link for all authenticated users */}
             <Link to="/chat">
               <button className="bg-green-500 text-white px-2 py-1 text-sm">💬 Chat</button>

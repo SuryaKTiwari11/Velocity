@@ -58,12 +58,16 @@ export const updateLocation = async (req, res) => {
   // Accept only real coordinates (not null/undefined/0)
   if (
     !userId ||
-    latitude == null || longitude == null ||
-    latitude === 0 || longitude === 0 ||
+    latitude == null ||
+    longitude == null ||
+    latitude === 0 ||
+    longitude === 0 ||
     !companyId
   ) {
     // Removed debug log
-    return res.status(400).json({ error: "Missing or invalid required fields" });
+    return res
+      .status(400)
+      .json({ error: "Missing or invalid required fields" });
   }
   try {
     // Fetch user details from DB for metadata

@@ -16,7 +16,7 @@ const logAction = async (
       throw new Error("Missing required parameters for logging action");
     }
     const ip = getClientIP(req);
-    const companyId = req.user.companyId || null;
+    const companyId = req.user.companyId ?? 0; // Use 0 if missing
 
     await AuditLog.create({
       userId,
@@ -64,10 +64,7 @@ const logLogin = async (
 ) => {
   try {
     const ip = req ? getClientIP(req) : null;
-    let companyId = null;
-    if (req && req.user && req.user.companyId) {
-      companyId = req.user.companyId;
-    }
+    let companyId = req && req.user ? req.user.companyId : null;
     await LoginHistory.create({
       userId,
       email: email,

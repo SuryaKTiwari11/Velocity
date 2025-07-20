@@ -86,6 +86,9 @@ export const login = async (req, res) => {
         .json({ success: false, err: "invalid company code" });
     }
 
+    if (!req.user) req.user = {};
+    req.user.companyId = company.companyId;
+
     const usr = await User.findOne({ where: { email } });
     if (!usr) {
       await logLogin(email, false, null, req, "User not found");
@@ -148,8 +151,7 @@ export const logout = async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         userId = decoded.userID;
         if (!req.user) req.user = {};
-        if (!req.user.companyId && decoded.companyId)
-          req.user.companyId = decoded.companyId;
+        req.user.companyId = decoded.companyId;
         await logAction(
           decoded.userID,
           "LOGOUT",

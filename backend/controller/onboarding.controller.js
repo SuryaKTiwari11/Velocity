@@ -17,12 +17,12 @@ export const getOnBoardingData = async (req, res) => {
         .status(404)
         .json({ message: "User not found for this company" });
     }
-    // No video progress tracking needed
+ 
     const documents = await S3Document.findAll({
       where: { userId, companyId },
     });
 
-    // Remove trainingVideos, isTrainingVideoDone, trainingProgress
+  
     res.status(200).json({
       user: {
         onboardingStatus: user.onboardingStatus,

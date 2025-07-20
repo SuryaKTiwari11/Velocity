@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { onboardingApi } from '../../src/front2backconnect/api';
+import { onboardingApi, s3DocumentApi } from '../../src/front2backconnect/api';
 
 const AdminVerificationPage = () => {
     const [pendingUsers, setPendingUsers] = useState([]);
@@ -73,6 +73,25 @@ const UserVerificationCard = ({ user, onVerify }) => {
     const [notes, setNotes] = useState('');
     const [showNotes, setShowNotes] = useState(false);
 
+    const handleDocDownload = async (doc) => {
+        try {
+            const res = await s3DocumentApi.getDownloadUrl(doc.id);
+            const url = res.data.downloadUrl;
+            if (doc.mimeType && doc.mimeType.startsWith('image/')) {
+                window.open(url, '_blank');
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = doc.originalName || doc.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        } catch (err) {
+            alert('Failed to get download link.');
+        }
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-start mb-4">
@@ -112,6 +131,12 @@ const UserVerificationCard = ({ user, onVerify }) => {
                                 <div className="text-xs text-gray-400">
                                     {new Date(doc.uploadedAt).toLocaleDateString()}
                                 </div>
+                                <button
+                                    className="mt-2 px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
+                                    onClick={() => handleDocDownload(doc)}
+                                >
+                                    {doc.mimeType && doc.mimeType.startsWith('image/') ? 'Preview' : 'Download'}
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -147,7 +172,6 @@ const UserVerificationCard = ({ user, onVerify }) => {
                 <button
                     onClick={() => onVerify(user.id, 'approve', notes)}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                    disabled={!user.isTrainingVideoDone}
                 >
                     ✅ Approve
                 </button>

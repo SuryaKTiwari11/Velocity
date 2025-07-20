@@ -10,8 +10,8 @@ export const JOBS = {
   NOTIFY: "notify",
   CLEANUP: "cleanup",
   SESSION: "session",
-  DOCUMENT: "process-document", 
-  INVITE: "invite", 
+  DOCUMENT: "process-document",
+  INVITE: "invite",
 };
 
 export const emailQ = new Queue("email", {
@@ -33,7 +33,6 @@ export const cleanQ = new Queue("clean", {
     backoff: { type: "exponential", delay: 5000 },
   },
 });
-
 
 export const documentQueue = new Queue("document", {
   connection,

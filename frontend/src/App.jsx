@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Components
 import Navbar from "../components/Navbar";
 import LandingPage from "../components/LandingPage";
 import ProfilePage from "../components/ProfilePage";
@@ -34,6 +33,7 @@ import AdminAttendancePage from "./pages/AdminAttendancePage";
 
 // Store
 import useAuthStore from "./store/authStore";
+// import Footer from "../components/Footer";
 
 const App = () => {
   const { checkAuth, user } = useAuthStore();
@@ -199,6 +199,7 @@ const App = () => {
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+
     </BrowserRouter>
   );
 };

@@ -25,7 +25,7 @@ export const onboardingApi = {
     api.get("/onboarding/admin/pending-verifications"),
   verifyUser: (userId, action, notes) =>
     api.patch(`/onboarding/admin/verify-user/${userId}`, { action, notes }),
-   markVideoComplete: (videoId) =>
+  markVideoComplete: (videoId) =>
     api.post("/onboarding/dev/mark-video-complete", { videoId }),
 };
 // Super Admin API

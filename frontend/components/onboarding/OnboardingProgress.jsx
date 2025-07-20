@@ -28,7 +28,7 @@ const OnboardingProgress = ({ isTrainingCompleted, isDocumentSubmitted, isDocume
                             </div>
                             <div className="mt-2 text-sm text-center">
                                 <div className="font-medium">{step.title}</div>
-                                <div className="text-gray-500 capitalize">{step.status}</div>
+                                {/* Status label removed */}
                             </div>
                         </div>
                         {index < steps.length - 1 && (

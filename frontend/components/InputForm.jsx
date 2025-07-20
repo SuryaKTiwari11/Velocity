@@ -5,13 +5,13 @@ import useAuthStore from "../src/store/authStore";
 
 const InputForm = () => {
   const navigate = useNavigate();
-  const { isAdmin, isAuthenticated } = useAuthStore();
+  const { isAdmin, isAuthenticated, user } = useAuthStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     position: "",
     department: "",
-    salary: "",
+    salary: ""
   });
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -35,16 +35,27 @@ const InputForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    
-    try {      const data = {
+    // Validate required fields
+    if (!formData.name || !formData.email) {
+      setError("Please fill all required fields (Name, Email).");
+      return;
+    }
+    try {
+      const data = {
         ...formData,
-        salary: formData.salary ? Number(formData.salary) : null,
-        position: formData.position || null,
-        department: formData.department || null
+        salary: Number(formData.salary),
+        companyId: user?.companyId
       };
-        await employeeApi.createEMP(data);
-      navigate("/hradmin");    } catch {
+      console.log("Payload sent to backend:", data);
+      await employeeApi.createEMP(data);
+      navigate("/hradmin");
+    } catch (err) {
       setError("Failed to create employee");
+      if (err?.response) {
+        console.error("Backend error response:", err.response.data);
+      } else {
+        console.error("Error:", err);
+      }
     }
   };
   return (
@@ -69,7 +80,6 @@ const InputForm = () => {
             required
           />
         </div>
-        
         <div className="mb-3">
           <label className="block mb-1">Email</label>
           <input
@@ -81,7 +91,6 @@ const InputForm = () => {
             required
           />
         </div>
-        
         <div className="mb-3">
           <label className="block mb-1">Position</label>
           <input
@@ -92,7 +101,6 @@ const InputForm = () => {
             className="border p-2 w-full"
           />
         </div>
-        
         <div className="mb-3">
           <label className="block mb-1">Department</label>
           <input
@@ -103,7 +111,6 @@ const InputForm = () => {
             className="border p-2 w-full"
           />
         </div>
-        
         <div className="mb-4">
           <label className="block mb-1">Salary</label>
           <input
@@ -114,7 +121,6 @@ const InputForm = () => {
             className="border p-2 w-full"
           />
         </div>
-        
         <div className="flex gap-2">
           <button
             type="button"

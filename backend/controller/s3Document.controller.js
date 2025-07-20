@@ -73,6 +73,9 @@ export const uploadFile = async (req, res) => {
       companyId: req.user.companyId,
       status: "uploaded",
     });
+    if (!document.id) {
+      console.error("Document ID is undefined after creation!", document);
+    }
     await documentQueue.add("process-document", { documentId: document.id });
     await logAction(
       req.user.id,
@@ -118,6 +121,7 @@ export const getFiles = async (req, res) => {
       where: whereCondition,
       order: [["createdAt", "DESC"]],
     });
+    // ...existing code...
     res.json({ success: true, data: documents, count: documents.length });
   } catch (error) {
     res.status(500).json({
@@ -132,6 +136,7 @@ export const getFiles = async (req, res) => {
 export const downloadFile = async (req, res) => {
   try {
     const { id } = req.params;
+    // ...existing code...
     if (!req.user || !req.user.id) {
       return res
         .status(401)
@@ -143,7 +148,8 @@ export const downloadFile = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Document not found" });
     }
-    if (document.userId !== req.user.id) {
+    // Allow owner or admin to download
+    if (document.userId !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to download this document",
@@ -153,15 +159,35 @@ export const downloadFile = async (req, res) => {
       Bucket: BUCKET_NAME,
       Key: document.s3Key,
     });
-    const downloadUrl = await getSignedUrl(s3Client, getObjectCommand, {
-      expiresIn: 3600,
+    let downloadUrl;
+    try {
+      downloadUrl = await getSignedUrl(s3Client, getObjectCommand, {
+        expiresIn: 3600,
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to generate download URL",
+        error: err.message,
+      });
+    }
+    const origin = req.headers.origin || "http://localhost:5173";
+    res.set({
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Credentials": "true",
+      "Access-Control-Allow-Methods": "GET",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
     });
-    res.json({
+    res.status(200).json({
       success: true,
       downloadUrl,
       filename: document.originalName || document.filename,
     });
   } catch (error) {
+    console.error("[downloadFile] Outer error:", error);
     res.status(500).json({
       success: false,
       message: "Download failed",
@@ -217,7 +243,13 @@ export const getAllFiles = async (req, res) => {
   try {
     const { page = 1, limit = 10, type, status } = req.query;
     const offset = (page - 1) * limit;
-    const whereCondition = {};
+    if (!req.user || !req.user.companyId || !req.user.isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view all documents",
+      });
+    }
+    const whereCondition = { companyId: req.user.companyId };
     if (type) whereCondition.type = type;
     if (status) whereCondition.status = status;
     const { count, rows: documents } = await S3Document.findAndCountAll({

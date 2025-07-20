@@ -144,7 +144,7 @@ export const validateInviteToken = async (req, res) => {
 // Invite-only signup endpoint
 export const validateInviteAndSignup = async (req, res) => {
   try {
-    const { inviteToken, email, password, name } = req.body;
+    const { inviteToken, email, password, name, city } = req.body;
 
     // Validate input
     if (!inviteToken || !email || !password || !name) {
@@ -192,6 +192,7 @@ export const validateInviteAndSignup = async (req, res) => {
       password: hashedPassword,
       name,
       companyId: invite.companyId,
+      city: city || "delhi",
       status: "active",
       isVerified: true, // Mark as verified since this is invite-only
     });

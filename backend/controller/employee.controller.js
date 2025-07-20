@@ -17,6 +17,7 @@ export const createEMP = async (req, res) => {
         message: "employee with this email already exists",
       });
     }
+    const userId = req.user?.id;
     const savedEMP = await Employee.create({
       name,
       department,
@@ -24,6 +25,7 @@ export const createEMP = async (req, res) => {
       email,
       salary,
       companyId,
+      userId,
     });
 
     res.status(201).json({
