@@ -1,7 +1,7 @@
 <div align="center">
 
   # ⚡ VELOCITY — Employee Management System (EMS) SaaS Platform
-    <img src="./PREVIEW.jpeg" alt="VELOCITY Preview"  style="border-radius: 16px; box-shadow: 0 4px 24px #0002; margin-bottom: 1rem;" />
+    <img src="./PREVIEW.jpeg" alt="VELOCITY Preview" />
 
   **The most advanced open-source Employee Management System for startups, enterprises, and HR tech builders.**
   
