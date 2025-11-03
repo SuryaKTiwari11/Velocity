@@ -1,5 +1,5 @@
 import React from "react";
-import { Github, Linkedin, Twitter } from "lucide-react";
+import { Building2, Mail, Phone } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -11,15 +11,18 @@ const Footer = () => {
           <span className="ml-3 px-3 py-1 rounded bg-white bg-opacity-10 text-base font-bold border border-white border-opacity-20">v1.0</span>
         </div>
         <div className="flex items-center gap-8">
-          <a href="https://github.com/SuryaKTiwari11" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300 transition-colors duration-200">
-            <Github size={28} />
-          </a>
-          <a href="https://linkedin.com/in/suryaktiwari11" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300 transition-colors duration-200">
-            <Linkedin size={28} />
-          </a>
-          <a href="https://twitter.com/suryaktiwari11" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-300 transition-colors duration-200">
-            <Twitter size={28} />
-          </a>
+          <div className="flex items-center gap-2 hover:text-yellow-300 transition-colors duration-200">
+            <Building2 size={20} />
+            <span className="text-sm">Enterprise HR Solutions</span>
+          </div>
+          <div className="flex items-center gap-2 hover:text-yellow-300 transition-colors duration-200">
+            <Mail size={20} />
+            <span className="text-sm">support@velocity.com</span>
+          </div>
+          <div className="flex items-center gap-2 hover:text-yellow-300 transition-colors duration-200">
+            <Phone size={20} />
+            <span className="text-sm">1-800-VELOCITY</span>
+          </div>
         </div>
         <div className="text-lg text-gray-200 font-light text-center md:text-right w-full md:w-auto">
           © {new Date().getFullYear()} VELOCITY. All rights reserved.

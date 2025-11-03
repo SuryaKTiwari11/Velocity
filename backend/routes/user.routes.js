@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "../configuration/passport.js";
 import { protect } from "../middleware/auth.middleware.js";
+import { simpleCache } from "../middleware/simpleCache.middleware.js";
 import {
   signUp,
   login,
@@ -23,7 +24,7 @@ const router = express.Router();
 router.post("/signup", signUp);
 router.post("/login", login);
 router.post("/logout", logout);
-router.get("/me", protect, curUser);
+router.get("/me", protect, simpleCache(30), curUser); // Cache for 30 seconds
 
 router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-otp", verifyResetOTP);

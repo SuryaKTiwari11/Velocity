@@ -1,13 +1,25 @@
 import { emailQ, JOBS } from "./simple.js";
+import { checkEmailIdempotency } from "../utils/idempotency.js";
 
+// Add OTP verification email to queue
 export const addOTP = async (email, otp, name = "User") => {
   try {
+    // Check if OTP was sent recently
+    const idempotencyCheck = await checkEmailIdempotency(email, "otp", 2);
+
+    if (!idempotencyCheck.allowed) {
+      return {
+        success: false,
+        error: "OTP already sent recently. Wait 2 minutes.",
+      };
+    }
+
     const job = await emailQ.add(
       JOBS.OTP,
       { email, otp, name },
       { priority: 10 }
     );
-    // OTP queued
+
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue OTP:", error);
@@ -15,14 +27,25 @@ export const addOTP = async (email, otp, name = "User") => {
   }
 };
 
+// Add password reset email to queue
 export const addReset = async (email, otp, name = "User") => {
   try {
+    // Check if reset email was sent recently
+    const idempotencyCheck = await checkEmailIdempotency(email, "reset", 5);
+
+    if (!idempotencyCheck.allowed) {
+      return {
+        success: false,
+        error: "Reset email already sent recently. Wait 5 minutes.",
+      };
+    }
+
     const job = await emailQ.add(
       JOBS.RESET,
       { email, otp, name },
       { priority: 10 }
     );
-    // Reset queued
+
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue reset:", error);
@@ -30,53 +53,38 @@ export const addReset = async (email, otp, name = "User") => {
   }
 };
 
-export const addWelcome = async (email, name) => {
+// Add company invitation email to queue
+export const addInvite = async (
+  email,
+  inviteToken,
+  companyId,
+  name = "User"
+) => {
   try {
-    const job = await emailQ.add(
-      JOBS.WELCOME,
-      { email, name },
-      {
-        priority: 5,
-        delay: 5000,
-      }
-    );
-    // Welcome queued
-    return { success: true, jobId: job.id };
-  } catch (error) {
-    console.error("Failed to queue welcome:", error);
-    return { success: false, error: error.message };
-  }
-};
+    // Check if invite was sent recently
+    const idempotencyCheck = await checkEmailIdempotency(email, "invite", 10);
 
-export const addNotify = async (email, subject, message, name = "User") => {
-  try {
-    const job = await emailQ.add(
-      JOBS.NOTIFY,
-      { email, subject, message, name },
-      { priority: 3 }
-    );
-    // Notification queued
-    return { success: true, jobId: job.id };
-  } catch (error) {
-    console.error("Failed to queue notification:", error);
-    return { success: false, error: error.message };
-  }
-};
+    if (!idempotencyCheck.allowed) {
+      return {
+        success: false,
+        error: "Invite email already sent recently. Wait 10 minutes.",
+      };
+    }
 
-export const addInvite = async (email, inviteToken, companyId) => {
-  try {
     const job = await emailQ.add(
       JOBS.INVITE,
-      { email, inviteToken, companyId },
-      { priority: 1 }
+      { email, inviteToken, companyId, name },
+      { priority: 8 }
     );
-    // Invite queued
+
     return { success: true, jobId: job.id };
   } catch (error) {
     console.error("Failed to queue invite:", error);
     return { success: false, error: error.message };
   }
 };
+
+// Get email queue statistics
 export const getStats = async () => {
   try {
     const waiting = await emailQ.getWaiting();
@@ -91,7 +99,13 @@ export const getStats = async () => {
       failed: failed.length,
     };
   } catch (error) {
-    console.error("Failed to get stats:", error);
-    return null;
+    console.error("Failed to get email queue stats:", error);
+    return {
+      waiting: 0,
+      active: 0,
+      completed: 0,
+      failed: 0,
+      error: error.message,
+    };
   }
 };

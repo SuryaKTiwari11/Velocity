@@ -20,9 +20,9 @@ const AdminVerificationPage = () => {
         }
     };
 
-    const handleVerification = async (userId, action, notes = '') => {
+    const handleVerification = async (userId, action) => {
         try {
-            await onboardingApi.verifyUser(userId, action, notes);
+            await onboardingApi.verifyUser(userId, action, ''); // Empty notes
             alert(`User ${action}d successfully!`);
             fetchPendingVerifications(); // Refresh list
         } catch (error) {
@@ -70,24 +70,14 @@ const AdminVerificationPage = () => {
 };
 
 const UserVerificationCard = ({ user, onVerify }) => {
-    const [notes, setNotes] = useState('');
-    const [showNotes, setShowNotes] = useState(false);
-
     const handleDocDownload = async (doc) => {
         try {
             const res = await s3DocumentApi.getDownloadUrl(doc.id);
             const url = res.data.downloadUrl;
-            if (doc.mimeType && doc.mimeType.startsWith('image/')) {
-                window.open(url, '_blank');
-            } else {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = doc.originalName || doc.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-        } catch (err) {
+            // Always open in new tab/window
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error('Download error:', error);
             alert('Failed to get download link.');
         }
     };
@@ -103,28 +93,21 @@ const UserVerificationCard = ({ user, onVerify }) => {
                     </p>
                 </div>
                 <div className="text-right">
-                    <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm">Training:</span>
-                        <span className={`px-2 py-1 rounded text-sm ${
-                            user.isTrainingVideoDone 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                        }`}>
-                            {user.isTrainingVideoDone ? '✅ Complete' : '❌ Incomplete'}
-                        </span>
-                    </div>
                     <div className="text-sm text-gray-500">
                         Status: {user.onboardingStatus}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                        Documents: {user.s3documents?.length || 0}
                     </div>
                 </div>
             </div>
 
             {/* Documents */}
             <div className="mb-4">
-                <h4 className="font-medium mb-2">Submitted Documents ({user.S3Documents?.length || 0})</h4>
-                {user.S3Documents && user.S3Documents.length > 0 ? (
+                <h4 className="font-medium mb-2">Submitted Documents ({user.s3documents?.length || 0})</h4>
+                {user.s3documents && user.s3documents.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {user.S3Documents.map((doc) => (
+                        {user.s3documents.map((doc) => (
                             <div key={doc.id} className="bg-gray-50 p-2 rounded text-sm">
                                 <div className="font-medium">{doc.title}</div>
                                 <div className="text-gray-500">{doc.type}</div>
@@ -135,7 +118,7 @@ const UserVerificationCard = ({ user, onVerify }) => {
                                     className="mt-2 px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-xs"
                                     onClick={() => handleDocDownload(doc)}
                                 >
-                                    {doc.mimeType && doc.mimeType.startsWith('image/') ? 'Preview' : 'Download'}
+                                    Preview
                                 </button>
                             </div>
                         ))}
@@ -145,49 +128,21 @@ const UserVerificationCard = ({ user, onVerify }) => {
                 )}
             </div>
 
-            {/* Notes */}
-            {showNotes && (
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Review Notes (optional)
-                    </label>
-                    <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        rows="3"
-                        placeholder="Add notes about the verification decision..."
-                    />
-                </div>
-            )}
-
             {/* Actions */}
             <div className="flex gap-2">
                 <button
-                    onClick={() => setShowNotes(!showNotes)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                >
-                    {showNotes ? 'Hide Notes' : 'Add Notes'}
-                </button>
-                <button
-                    onClick={() => onVerify(user.id, 'approve', notes)}
+                    onClick={() => onVerify(user.id, 'approve')}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                     ✅ Approve
                 </button>
                 <button
-                    onClick={() => onVerify(user.id, 'reject', notes)}
+                    onClick={() => onVerify(user.id, 'reject')}
                     className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                 >
                     ❌ Reject
                 </button>
             </div>
-
-            {!user.isTrainingVideoDone && (
-                <p className="text-sm text-red-600 mt-2">
-                    ⚠️ User must complete training videos before approval
-                </p>
-            )}
         </div>
     );
 };

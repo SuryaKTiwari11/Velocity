@@ -2,13 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import AutoAttendanceTracker from '../../components/AutoAttendanceTracker';
 import { attendanceApi } from '../front2backconnect/api';
 import useAuthStore from '../store/authStore';
-import { Clock, Calendar, TrendingUp, Activity, BarChart3 } from 'lucide-react';
+import { Clock, Calendar } from 'lucide-react';
 
 const AttendancePage = () => {
   // Get user from Zustand store instead of localStorage
   const { user, isAuthenticated } = useAuthStore();
   
-  const [attendanceStats, setAttendanceStats] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -19,12 +18,6 @@ const AttendancePage = () => {
       setLoading(true);
       console.log('🔄 Loading attendance data for user:', user?.email || user?.username);
       
-      // Load attendance stats
-      const statsResponse = await attendanceApi.stats();
-      if (statsResponse.data.success) {
-        setAttendanceStats(statsResponse.data.data);
-      }
-
       // Load attendance history with pagination
       const historyResponse = await attendanceApi.history({
         page: currentPage,
@@ -122,51 +115,6 @@ const AttendancePage = () => {
         <div className="mb-8">
           <AutoAttendanceTracker />
         </div>
-
-        {/* Attendance Stats */}
-        {attendanceStats && (
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Hours</p>
-                  <p className="text-2xl font-bold text-gray-900">{attendanceStats.totalHours}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Days Worked</p>
-                  <p className="text-2xl font-bold text-gray-900">{attendanceStats.totalDaysWorked}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Average Hours</p>
-                  <p className="text-2xl font-bold text-gray-900">{attendanceStats.averageHours}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center">
-                <Activity className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-gray-900">{attendanceStats.attendanceRate}%</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Attendance History */}
         <div className="bg-white rounded-lg shadow">

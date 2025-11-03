@@ -2,13 +2,10 @@ const setupAssociations = (models) => {
   const {
     User,
     Employee,
-    OTP,
-    Document,
     AuditLog,
     LoginHistory,
     Attendance,
     S3Document,
-    VideoProgress,
     Company,
     Invite,
     Payment,
@@ -29,13 +26,9 @@ const setupAssociations = (models) => {
   User.hasOne(Employee, { foreignKey: "userId", sourceKey: "id" });
   Employee.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
 
-  // OTP associations
-  User.hasMany(OTP, { foreignKey: "email", sourceKey: "email" });
-  OTP.belongsTo(User, { foreignKey: "email", targetKey: "email" });
-
-  // Document associations
-  User.hasMany(Document, { foreignKey: "userId", as: "documents" });
-  Document.belongsTo(User, { foreignKey: "userId", as: "owner" });
+  // S3Document associations (removed old Document model)
+  User.hasMany(S3Document, { foreignKey: "userId", as: "s3documents" });
+  S3Document.belongsTo(User, { foreignKey: "userId", as: "owner" });
 
   // AuditLog & LoginHistory associations
   User.hasMany(AuditLog, { foreignKey: "userId", as: "auditLogs" });
@@ -48,23 +41,12 @@ const setupAssociations = (models) => {
   Attendance.belongsTo(Employee, { foreignKey: "employeeId" });
   User.hasMany(Attendance, { foreignKey: "userId" });
   Attendance.belongsTo(User, { foreignKey: "userId" });
-
-  // S3Document associations
-  User.hasMany(S3Document, { foreignKey: "userId" });
-  S3Document.belongsTo(User, { foreignKey: "userId" });
-  Employee.hasMany(S3Document, { foreignKey: "employeeId" });
-  S3Document.belongsTo(Employee, { foreignKey: "employeeId" });
-
-  // VideoProgress associations
+  Attendance.belongsTo(Company, { foreignKey: "companyId" });
+  Company.hasMany(Attendance, { foreignKey: "companyId" });
 
   // Invite associations
   Company.hasMany(Invite, { foreignKey: "companyId", as: "invites" });
   Invite.belongsTo(Company, { foreignKey: "companyId", as: "company" });
-  // Invite should NOT belong to User by userId (no userId in Invite model/table)
-  // Invite.belongsTo(User, { foreignKey: "userId", as: "user" });
-
-  Attendance.belongsTo(Company, { foreignKey: "companyId" });
-  Company.hasMany(Attendance, { foreignKey: "companyId" });
 
   return models;
 };

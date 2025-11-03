@@ -32,26 +32,11 @@ const Navbar = () => {
                 <button className="bg-green-600 text-white px-2 py-1 text-sm">HR Dashboard</button>
               </Link>
             )}
-            {isAdmin && (
-              <Link to="/analytics">
-                <button className="bg-indigo-600 text-white px-2 py-1 text-sm">📊 Analytics</button>
-              </Link>
-            )}
             {isPremium && (
               <Link to="/documents">
                 <button className="bg-purple-600 text-white px-2 py-1 text-sm">Documents</button>
               </Link>
             )}
-            {/* Nearby link for onboarded users */}
-            {user?.onboardingStatus === 'approved' && (
-              <Link to="/nearby">
-                <button className="bg-pink-500 text-white px-2 py-1 text-sm">🧭 Nearby</button>
-              </Link>
-            )}
-            {/* Chat link for all authenticated users */}
-            <Link to="/chat">
-              <button className="bg-green-500 text-white px-2 py-1 text-sm">💬 Chat</button>
-            </Link>
             {/* Attendance link for all authenticated users */}
             <Link to="/attendance">
               <button className="bg-orange-500 text-white px-2 py-1 text-sm">⏰ Attendance</button>

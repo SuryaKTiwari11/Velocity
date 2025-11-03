@@ -1,0 +1,26 @@
+
+#
+# This file is commented out because you're in learning mode.
+# Uncomment everything below when you're ready to deploy to production.
+#
+# What this would do:
+# - Run only when CI tests pass
+# - Build production Docker images
+# - Deploy your app to a server
+#
+# For now, focus on the CI pipeline (ci.yml) which tests your code.
+
+# Uncomment the lines below when ready for deployment:
+
+# name: CD Pipeline
+# on:
+#   push:
+#     branches: [ main ]
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#     - name: Deploy app
+#       run: echo "Deploying to production..."

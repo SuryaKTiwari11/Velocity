@@ -13,17 +13,12 @@ import ForgotPasswordForm from "../components/ForgotPasswordForm";
 import ResetPasswordForm from "../components/ResetPasswordForm";
 import VerifyOTPForm from "../components/VerifyOTPForm";
 import DocManager from "../components/Doc/DocManager";
-import AnalyticsDashboard from "../components/Analytics/AnalyticsDashboard";
-import ChatPage from "../components/chat/ChatPage";
-import CallPage from "../components/chat/CallPage";
 import OnboardingPage from "../components/onboarding/OnboardingPage";
 import AdminVerificationPage from "../components/onboarding/AdminVerificationPage";
 import InviteSignupForm from "../components/InviteSignupForm";
 import SuperAdminDashboard from "../components/SuperAdminDashboard";
 import PremiumPayment from "../components/PremiumPayment";
-import ZoomMeeting from "../components/ZoomMeeting";
 import NotFound from "../components/NotFound";
-import NearbyPeople from "../components/Nearby/Nearby";
 import CompanyAdminPanel from "../components/CompanyAdminPanel";
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -71,19 +66,6 @@ const App = () => {
           }
         />
         <Route
-          path="/nearby"
-          element={
-            <ProtectedRoute>
-              <NearbyPeople
-                userId={user?.id}
-                latitude={user?.employeeInfo?.latitude}
-                longitude={user?.employeeInfo?.longitude}
-                companyId={user?.companyId}
-              />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/documents"
           element={
             <ProtectedRoute requirePremium={true}>
@@ -107,14 +89,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/analytics"
-          element={
-            <ProtectedRoute requireAdmin={true}>
-              <AnalyticsDashboard />
-            </ProtectedRoute>
-          }
-        />
+  
         <Route
           path="/attendance"
           element={
@@ -131,38 +106,7 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/meeting"
-          element={
-            <ProtectedRoute requirePremium={true}>
-              <ZoomMeeting />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/chat"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/chat/:id"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/call/:id"
-          element={
-            <ProtectedRoute>
-              <CallPage />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/onboarding"
           element={

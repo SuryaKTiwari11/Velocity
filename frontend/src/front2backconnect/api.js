@@ -13,10 +13,6 @@ const publicApi = axios.create({
   headers: { "Content-Type": "application/json" },
   withCredentials: false,
 });
-export const nearbyApi = {
-  findNearby: (data) => api.post("/nearby/nearby", data),
-  updateLocation: (data) => api.post("/nearby/update", data),
-};
 export const onboardingApi = {
   getData: () => api.get("/onboarding/data"),
   getTrainingStatus: () => api.get("/onboarding/training-status"),
@@ -92,23 +88,18 @@ export const documentApi = {
   list: () => api.get("/s3-documents/"),
   download: (docId) => api.get(`/s3-documents/${docId}/download`),
   delete: (docId) => api.delete(`/s3-documents/${docId}`),
-  search: (query) => api.get(`/s3-documents/?search=${query}`),
   health: () => api.get("/s3-documents/health"),
 };
 
-// S3 Document API (Admin/Employee)
+// S3 Document API (Admin/Employee) - Simplified
 export const s3DocumentApi = {
   upload: (formData) =>
     api.post("/s3-documents/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
-  getByEmployee: (employeeId) =>
-    api.get(`/s3-documents/employee/${employeeId}`),
   getDownloadUrl: (docId) => api.get(`/s3-documents/${docId}/download`),
   delete: (docId) => api.delete(`/s3-documents/${docId}`),
   getAll: (params = {}) => api.get("/s3-documents", { params }),
-  updateStatus: (docId, status, notes = "") =>
-    api.patch(`/s3-documents/${docId}/status`, { status, notes }),
   healthCheck: () => api.get("/s3-documents/health"),
 };
 
@@ -132,23 +123,15 @@ export const mapApi = {
   getCities: () => publicApi.get("/map/cities"),
 };
 
-// Chat API
-export const chatApi = {
-  getStreamToken: () => api.get("/chat/token"),
-  searchUsers: (query) =>
-    api.get(`/users/search?q=${encodeURIComponent(query)}`),
-  upsertTargetUser: (targetUserId, companyId) =>
-    api.post(`/chat/upsert-user/${targetUserId}`, { companyId }),
-};
-
 // Attendance API
 export const attendanceApi = {
   // User endpoints
   today: () => api.get("/attendance/today"),
   history: (params) => api.get("/attendance/history", { params }),
-  stats: (params) => api.get("/attendance/stats", { params }),
   clockIn: () => api.post("/attendance/clock-in"),
   clockOut: () => api.post("/attendance/clock-out"),
+
+  // Admin endpoints for dashboard table
   getAllAttendance: (params) => api.get("/attendance/admin/all", { params }),
   getActiveUsers: () => api.get("/attendance/admin/active"),
 };

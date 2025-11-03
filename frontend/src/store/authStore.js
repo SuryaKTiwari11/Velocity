@@ -183,9 +183,11 @@ const useAuthStore = create(
       checkAuth: async () => {
         set({ isLoading: true });
         try {
+          // Direct API calls - Redis caching is handled on backend
           const response = await authApi.curUser();
           const { user, employeeInfo } = response.data;
           const isAdmin = user && user.isAdmin === true;
+
           set({
             user: {
               ...user,
@@ -199,7 +201,7 @@ const useAuthStore = create(
             companyId: user?.companyId || null,
           });
 
-          // Check premium status
+          // Check premium status - Redis caching is handled on backend
           try {
             const premiumResponse = await paymentApi.status();
             const { isPremium } = premiumResponse.data;

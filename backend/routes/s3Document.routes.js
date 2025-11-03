@@ -1,28 +1,28 @@
 import express from "express";
 import {
-  uploadFile,
+  uploadDocument,
   getFiles,
   downloadFile,
   deleteFile,
-  getAllFiles,
-  updateFileStatus,
   healthCheck,
 } from "../controller/s3Document.controller.js";
 import {
   protect,
   requireOnboardingComplete,
 } from "../middleware/auth.middleware.js";
-import { upload } from "../configuration/s3Config.js";
+import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
+// Health check
 router.get("/health", healthCheck);
-router.post("/upload", protect, upload.single("document"), uploadFile);
+
+// Traditional multipart upload route (for frontend compatibility)
+router.post("/upload", protect, upload.single("document"), uploadDocument);
+
+// File management routes
 router.get("/", protect, getFiles);
 router.get("/:id/download", protect, downloadFile);
-router.get("/employee/:employeeId", requireOnboardingComplete, getFiles);
 router.delete("/:id", protect, deleteFile);
-router.get("/all", requireOnboardingComplete, getAllFiles);
-router.put("/:id/status", requireOnboardingComplete, updateFileStatus);
 
 export default router;

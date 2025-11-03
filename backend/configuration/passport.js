@@ -7,9 +7,7 @@ import { configDotenv } from "dotenv";
 import crypto from "crypto";
 
 configDotenv();
-const randomPass = () => {
-  return crypto.randomBytes(16).toString("hex");
-};
+
 
 passport.use(
   "google",

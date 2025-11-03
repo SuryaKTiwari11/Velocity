@@ -1,6 +1,5 @@
 import { User, S3Document } from "../model/model.js";
 
-
 export const getOnBoardingData = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -17,12 +16,12 @@ export const getOnBoardingData = async (req, res) => {
         .status(404)
         .json({ message: "User not found for this company" });
     }
- 
+
     const documents = await S3Document.findAll({
       where: { userId, companyId },
+      order: [["createdAt", "DESC"]],
     });
 
-  
     res.status(200).json({
       user: {
         onboardingStatus: user.onboardingStatus,
@@ -47,7 +46,6 @@ export const submitDocuments = async (req, res) => {
         .json({ message: "User ID and company ID are required" });
     }
 
-    // Remove training completion check
     const user = await User.findOne({ where: { id: userId, companyId } });
 
     // Check if user has uploaded at least one document
@@ -62,6 +60,7 @@ export const submitDocuments = async (req, res) => {
     }
 
     // Update user status to document submission
+    // By submitting documents, user confirms they watched the training video
     await User.update(
       {
         isDocumentSubmitted: true,
@@ -71,7 +70,8 @@ export const submitDocuments = async (req, res) => {
     );
 
     res.status(200).json({
-      message: "Documents submitted successfully. Admin will review them soon.",
+      message:
+        "Documents submitted successfully. By submitting, you confirm you have watched the training video. Admin will review them soon.",
       documentsCount: userDocuments.length,
     });
   } catch (error) {
@@ -91,16 +91,11 @@ export const getVerificationQueue = async (req, res) => {
       where: {
         onboardingStatus: "under_review",
       },
-      attributes: [
-        "id",
-        "name",
-        "email",
-        "onboardingStatus",
-        "createdAt",
-      ],
+      attributes: ["id", "name", "email", "onboardingStatus", "createdAt"],
       include: [
         {
           model: S3Document,
+          as: "s3documents",
           attributes: ["id", "title", "type", "status", "uploadedAt"],
         },
       ],

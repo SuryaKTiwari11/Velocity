@@ -1,8 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { User } from "../model/model.js";
-import { sendOTP, verifyOTP, cleanupOldOTPs } from "../helper/otpService.js";
-import { addOTP, addReset } from "../queues/email.js";
+import { sendOTP, verifyOTP } from "../helper/otpService.js";
 
 export const sendEmailOTP = async (req, res) => {
   try {
@@ -10,38 +9,29 @@ export const sendEmailOTP = async (req, res) => {
     if (!email)
       return res.status(400).json({ success: false, msg: "Need email" });
 
-    const r = await sendOTP(email);
-    if (r.success) {
-      // Get user name for email personalization
-      const user = await User.findOne({ where: { email } });
-      const userName = user ? user.name : "User"; // Add OTP email job to queue
-      const emailJobResult = await addOTP(email, r.otp, userName);
+    // Send OTP using the updated OTP service (already uses BullMQ)
+    const result = await sendOTP(email, "verification");
 
-      if (emailJobResult.success) {
-        return res.status(200).json({
-          success: true,
-          msg: "OTP queued for sending",
-          jobId: emailJobResult.jobId,
-        });
-      } else {
-        return res.status(500).json({
-          success: false,
-          msg: "Failed to queue OTP email",
-          error: emailJobResult.error,
-        });
-      }
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        msg: "OTP generated and queued for sending",
+        jobId: result.jobId,
+        // Only show OTP in development
+        otp: result.otp,
+      });
     } else {
       return res.status(500).json({
         success: false,
-        msg: "cant send OTP",
-        err: r.message,
+        msg: "Failed to send OTP",
+        error: result.message,
       });
     }
   } catch (err) {
     return res.status(500).json({
       success: false,
       msg: "OTP error",
-      err: err.message,
+      error: err.message,
     });
   }
 };
@@ -56,32 +46,26 @@ export const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(200).json({
         success: true,
-        msg: "If email exists, u will get reset code",
+        msg: "If email exists, you will get reset code",
       });
     }
 
-    const res1 = await sendOTP(email, "passReset");
-    if (res1.success) {
-      // Add password reset email job to queue
-      const emailJobResult = await addReset(email, res1.otp, user.name);
+    // Send password reset OTP (already uses BullMQ queue)
+    const result = await sendOTP(email, "passReset");
 
-      if (emailJobResult.success) {
-        return res.status(200).json({
-          success: true,
-          msg: "Password reset code queued for sending",
-          jobId: emailJobResult.jobId,
-        });
-      } else {
-        return res.status(500).json({
-          success: false,
-          msg: "Failed to queue password reset email",
-          error: emailJobResult.error,
-        });
-      }
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        msg: "Password reset code generated and queued for sending",
+        jobId: result.jobId,
+        // Only show OTP in development
+        otp: result.otp,
+      });
     } else {
       return res.status(500).json({
         success: false,
-        msg: res1.message,
+        msg: "Failed to send password reset code",
+        error: result.message,
       });
     }
   } catch (err) {
@@ -161,10 +145,8 @@ export const resetPassword = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(newPassword, salt);
     await usr.update({ password: hashedPass });
-
     // Clean up any password reset OTPs for this user
-    await cleanupOldOTPs(usr.email);
-
+    await redisClient.del(`otp:${usr.email}:passReset`);
     return res.status(200).json({ success: true, msg: "Password reset done" });
   } catch (err) {
     return res.status(500).json({ success: false, err: err.message });

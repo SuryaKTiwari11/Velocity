@@ -13,7 +13,7 @@ export function ProgressWrapper({ documentId, userId }) {
   return <Progress status={status} progress={progress} />;
 }
 
-export function DocUpload({ docType, setDocType, setFile, uploading, handleUpload, message, lastUploadedDocId, user }) {
+export function DocUpload({ docType, setDocType, setFile, uploading, handleUpload, message, user }) {
   return (
     <div className="bg-gray-100 p-4 mb-4 rounded-lg">
       <h2 className="text-lg font-bold mb-2 flex items-center">

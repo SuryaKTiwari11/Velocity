@@ -1,18 +1,35 @@
 version: "3.8"
 
 services:
-  localstack:
-    image: localstack/localstack
-    container_name: localstack
-    ports:
-      - "4566:4566"
-      - "4510-4559:4510-4559"
-      - "5678:5678"
-    volumes:
-      - localstack_data:/tmp/localstack
-    networks:
-      - bridge
+  # COMMENTED OUT FOR FASTER DEVELOPMENT
+  # Uncomment when you want to test full containerized setup
 
+  # backend:
+  #   build: ./backend
+  #   container_name: ems-backend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=development
+  #   depends_on:
+  #     - ems-redis
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+
+  # frontend:
+  #   build: ./frontend
+  #   container_name: ems-frontend
+  #   ports:
+  #     - "4173:4173"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - backend
+
+  # Redis service - ONLY THIS RUNS
   ems-redis:
     image: redis
     container_name: ems-redis
@@ -20,13 +37,17 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - bridge
+
+  # Redis Stack with UI - HELPFUL FOR DEBUGGING
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: redis-stack
+    ports:
+      - "6380:6379" # Redis on different port to avoid conflict
+      - "8001:8001" # RedisInsight UI
+    restart: unless-stopped
+    depends_on:
+      - ems-redis
 
 volumes:
-  localstack_data:
   redis_data:
-
-networks:
-  bridge:
-    external: true

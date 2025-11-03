@@ -1,1 +1,4 @@
-https://github.com/SuryaKTiwari11 https://leetcode.com/u/jamcocobutter/ https://www.linkedin.com/in/surya-kant-tiwari-0707a52a9/
+// Professional HR System Footer Links
+// Company website: https://velocity.com
+// Support email: support@velocity.com
+// Documentation: https://docs.velocity.com

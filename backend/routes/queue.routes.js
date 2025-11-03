@@ -1,20 +1,15 @@
 import express from "express";
 import { getStats } from "../queues/email.js";
-import { getCleanStats } from "../queues/clean.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 const stats = async (req, res) => {
-
-    try {
+  try {
     const emailStats = await getStats();
-    const cleanupStats = await getCleanStats();
-
     res.json({
       success: true,
       stats: {
         email: emailStats,
-        cleanup: cleanupStats,
         timestamp: new Date().toISOString(),
       },
     });
@@ -26,7 +21,7 @@ const stats = async (req, res) => {
       error: error.message,
     });
   }
-}
+};
 router.get("/stats", protect, adminOnly, stats);
 
 export default router;

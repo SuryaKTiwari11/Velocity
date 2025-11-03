@@ -1,7 +1,5 @@
-// ...existing code...
 import companyAdminRoutes from "./routes/company.admin.routes.js";
 import models from "./model/model.js";
-import nearbyRoutes from "./routes/nearby.routes.js";
 import express from "express";
 import { configDotenv } from "dotenv";
 import cors from "cors";
@@ -15,24 +13,18 @@ import userRoutes from "./routes/user.routes.js";
 import otpRoutes from "./routes/otp.routes.js";
 import queueRoutes from "./routes/queue.routes.js";
 import companyRouter from "./routes/company.routes.js"; // Import company routes
-import analyticsRoutes from "./routes/analytics.routes.js";
 import cookieParser from "cookie-parser";
 import passport from "./configuration/passport.js";
 import { rateLimiter } from "./middleware/rateLimiter.middleware.js";
-import { setupCleanupScheduler } from "./scheduler/cleanup.js";
-import { setupAttendanceCleanup } from "./scheduler/attendanceCleanup.js";
-import { start, stop } from "./workers/manager.js";
-import { scheduleDaily } from "./queues/clean.js";
-import { serverAdapter } from "./queues/board.js";
+import { emailWorker } from "./workers/email.js"; // Simple email worker
 import paymentRoutes from "./routes/payment.routes.js";
 import mapRoutes from "./routes/map.routes.js";
-import chatRoutes from "./routes/chat.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import auditRoutes from "./routes/audit.routes.js";
 import onboardingRoutes from "./routes/onboarding.routes.js"; // New onboarding routes
 import s3DocumentRoutes from "./routes/s3Document.routes.js";
 import inviteRoutes from "./routes/invite.routes.js";
-// import { blockUserCompanyIdInBody } from "./middleware/blockUserCompanyId.js";
+import { cleanupRedisOnStartup } from "./services/attendanceService.js";
 
 import helmet from "helmet";
 import morgan from "morgan";
@@ -67,19 +59,12 @@ app.use("/api/otp", otpRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/company", companyAdminRoutes);
 app.use("/api", companyRouter);
-app.use("/api/nearby", nearbyRoutes);
 app.use("/api/super-admin", superAdminRoutes);
-//! Local document routes not NEEDED ->S3
-//! app.use("/api/documents", documentRoutes);
-app.use("/api/analytics", analyticsRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/admin", queueRoutes);
-app.use("/api/chat", chatRoutes);
-//! S3 document routes - main document system
 app.use("/api/s3-documents", s3DocumentRoutes);
 app.use("/api/invite", inviteRoutes);
-app.use("/admin/queues", adminOnly, serverAdapter.getRouter());
 app.use("/api/onboarding", onboardingRoutes);
 
 server.listen(PORT, async () => {
@@ -87,11 +72,21 @@ server.listen(PORT, async () => {
   if (await testConn()) {
     //!DONT DO TRUE, WILL REMOVE ALL DATA
     await sequelize.sync({ force: false });
-    start();
-    await scheduleDaily();
-    setupCleanupScheduler();
-    setupAttendanceCleanup();
-    // BullMQ ready
+
+    // Start email worker only
+    console.log("📧 Starting email worker...");
+
+    // 🚀 Initialize Redis session management
+    console.log("🚀 Initializing Redis session management...");
+    try {
+      // Simple Redis cleanup on startup
+      await cleanupRedisOnStartup();
+      console.log("✅ Redis session cleanup completed");
+    } catch (error) {
+      console.error("❌ Redis initialization failed:", error.message);
+    }
+
+    console.log("🎉 Server working with Redis session management!");
   } else {
     console.error("DB connect fail");
   }

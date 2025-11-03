@@ -6,8 +6,11 @@
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
+    "dev:redis": "docker-compose up -d",
     "install:all": "cd frontend && npm install && cd ../backend && npm install",
-    "start:docker": "docker-compose up -d"
+    "test:backend": "cd backend && npm test",
+    "stop:redis": "docker-compose down",
+    "start:full-docker": "docker-compose up -d"
   },
   "keywords": [
     "ems",

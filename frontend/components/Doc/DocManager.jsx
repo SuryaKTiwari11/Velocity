@@ -41,7 +41,6 @@ function DocManager() {
         uploading={doc.uploading}
         handleUpload={doc.handleUpload}
         message={doc.message}
-        lastUploadedDocId={doc.lastUploadedDocId}
         user={doc.user}
       />
       <DocSearch

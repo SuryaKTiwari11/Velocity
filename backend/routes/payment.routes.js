@@ -3,13 +3,14 @@ import {
   requireOnboardingComplete,
   protect,
 } from "../middleware/auth.middleware.js";
+import { simpleCache } from "../middleware/simpleCache.middleware.js";
 import {
   createOrder,
   verifyPayment,
   checkPremium,
   createCompanyOrder,
   verifyCompanyPayment,
-  razorpayWebhookHandler
+  razorpayWebhookHandler,
 } from "../controller/payment.controller.js";
 
 const router = express.Router();
@@ -21,7 +22,7 @@ router.post(
   requireOnboardingComplete,
   verifyPayment
 );
-router.get("/premium-status", protect, checkPremium);
+router.get("/premium-status", protect, simpleCache(60), checkPremium); // Cache for 1 minute
 
 router.post("/company/create-order", protect, createCompanyOrder);
 router.post("/company/verify-payment", protect, verifyCompanyPayment);
@@ -29,7 +30,7 @@ router.post("/company/verify-payment", protect, verifyCompanyPayment);
 router.post(
   "/webhook/razorpay",
   express.raw({ type: "application/json" }),
-  razorpayWebhookHandler 
+  razorpayWebhookHandler
 );
 
 export default router;

@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import io from "socket.io-client";
+import { useState, useEffect, useCallback } from "react";
 import { documentApi } from "../src/front2backconnect/api.js";
 import useAuthStore from "../src/store/authStore.js";
 
@@ -12,9 +11,7 @@ export default function useDocumentManager() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [lastUploadedDocId, setLastUploadedDocId] = useState(null);
   const [progress, setProgress] = useState(0);
-  const socketRef = useRef(null);
 
   const loadDocuments = useCallback(async () => {
     if (!user?.id) return;
@@ -37,57 +34,32 @@ export default function useDocumentManager() {
     loadDocuments();
   }, [loadDocuments]);
 
-  useEffect(() => {
-    if (!user) return;
-    if (!socketRef.current) {
-      socketRef.current = io("http://localhost:3000");
-    }
-    const socket = socketRef.current;
-    const progressMap = {
-      starting: 10,
-      movingFile: 40,
-      updatingDb: 80,
-      done: 100,
-      error: 0,
-    };
-    const onProgress = ({ documentId, status }) => {
-      if (lastUploadedDocId && documentId === lastUploadedDocId) {
-        setProgress(progressMap[status] || 0);
-        setMessage(`Status: ${status}`);
-        if (status === "done" || status === "error") {
-          setTimeout(() => setProgress(0), 1500);
-
-          loadDocuments();
-        }
-      }
-    };
-    socket.on("doc-progress", onProgress);
-    return () => {
-      socket.off("doc-progress", onProgress);
-    };
-  }, [user, lastUploadedDocId, loadDocuments]);
-
   // Upload handler
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return setMessage("Please select a file");
     setUploading(true);
     setMessage("Uploading...");
-    setProgress(5);
+    setProgress(20);
     try {
       const formData = new FormData();
       formData.append("document", file);
       formData.append("documentType", docType);
-      const res = await documentApi.upload(formData);
-      setMessage("Upload successful! Processing...");
+      await documentApi.upload(formData);
+
+      setProgress(100);
+      setMessage("Upload successful! ✅");
       setFile(null);
       if (e.target && typeof e.target.reset === "function") e.target.reset();
-      if (res.data?.document?.id) setLastUploadedDocId(res.data.document.id);
 
-      if (!socketRef.current) {
-        socketRef.current = io("http://localhost:3000");
-        setTimeout(() => loadDocuments(), 200);
-      }
+      // Clear progress and refresh documents immediately
+      setTimeout(() => {
+        setProgress(0);
+        setMessage("");
+      }, 1500);
+
+      // Refresh documents list immediately
+      await loadDocuments();
     } catch (error) {
       setMessage("Upload failed: " + error.message);
       setProgress(0);
@@ -110,7 +82,9 @@ export default function useDocumentManager() {
         // Refresh list to sync state
         await loadDocuments();
       } else {
-        setMessage("Delete failed: " + (error.response?.data?.message || error.message));
+        setMessage(
+          "Delete failed: " + (error.response?.data?.message || error.message)
+        );
       }
     }
   };
@@ -141,7 +115,9 @@ export default function useDocumentManager() {
       } else if (error.response?.status === 403) {
         setMessage("Not authorized to download this document");
       } else {
-        setMessage("Download failed: " + (error.response?.data?.message || error.message));
+        setMessage(
+          "Download failed: " + (error.response?.data?.message || error.message)
+        );
       }
     }
   };
@@ -176,6 +152,5 @@ export default function useDocumentManager() {
     handleDownload,
     handleSearch,
     loadDocuments,
-    lastUploadedDocId,
   };
 }

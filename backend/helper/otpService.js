@@ -1,9 +1,7 @@
-import { OTP } from "../model/model.js";
-import { emailService } from "./email.js";
+import { emailQ, JOBS } from "../queues/simple.js";
 import crypto from "crypto";
-import { Op } from "sequelize";
 import bcrypt from "bcryptjs";
-
+import redisClient from "../configuration/redis.js";
 const generateOTP = () => {
   const otp = crypto.randomInt(100000, 999999).toString().padStart(6, "0");
   return otp;
@@ -11,39 +9,37 @@ const generateOTP = () => {
 
 const sendOTP = async (email, purpose = "verification") => {
   try {
-    await OTP.update(
-      { verified: true },
-      {
-        where: {
-          email,
-          purpose,
-          verified: false,
-        },
-      }
-    );
+    const rateLimitCheck = await checkRateLimit(email, purpose);
+    if (!rateLimitCheck.success) {
+      return rateLimitCheck;
+    }
 
     const otp = generateOTP();
-    const hashOtp = await bcrypt.hash(otp, 8);
-    await OTP.create({
-      email,
-      otp: hashOtp,
-      verified: false,
-      attempts: 0,
-      purpose,
+    // Hashing adds an extra layer of security
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otp, salt);
+
+    // Store in Redis with 5-minute expiry
+    await redisClient.set(`otp:${email}:${purpose}`, hashedOtp, {
+      EX: 300, // expires in 5 minutes
     });
 
-    const emailRes = await emailService(email, otp, "User", purpose);
+    // Add email job to queue for background processing
+    const jobType = purpose === "passReset" ? JOBS.RESET : JOBS.OTP;
+    const emailJob = await emailQ.add(jobType, {
+      email: email,
+      otp: otp,
+      name: "User",
+      purpose: purpose,
+    });
 
-    if (emailRes.success) {
-      // OTP email sent
-      return {
-        success: true,
-        previewUrl: emailRes.url,
-        message: "OTP sent",
-      };
-    } else {
-      throw new Error("Cant send OTP");
-    }
+    return {
+      success: true,
+      message: "OTP generated and email queued for sending",
+      jobId: emailJob.id,
+      // Only return OTP in development - remove in production
+      otp: process.env.NODE_ENV === "development" ? otp : undefined,
+    };
   } catch (err) {
     console.error("Error sending OTP:", err);
     return {
@@ -53,110 +49,81 @@ const sendOTP = async (email, purpose = "verification") => {
   }
 };
 
-const cleanupOldOTPs = async (email = null) => {
+//todo Improve the verifyUserOTP function in otp.controller.js
+//todo Make it more robust with proper error handling
+//todo Ensure user isVerified gets updated consistently
+const verifyOTP = async (
+  email,
+  otp,
+  purpose = "verification",
+  deleteOnSuccess = true
+) => {
   try {
-    const whereCondition = {
-      [Op.or]: [
-        { expiresAt: { [Op.lt]: new Date() } },
-        {
-          verified: true,
-          createdAt: { [Op.lt]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        },
-      ],
-    };
-
-    await OTP.destroy({ where: whereCondition });
-  } catch (err) {
-    console.error("Error cleaning up old OTPs:", err);
-  }
-};
-
-const verifyOTP = async (email, otp, purpose = "verification") => {
-  try {
-    await cleanupOldOTPs(email);
-
-    const otpRec = await OTP.findOne({
-      where: {
-        email,
-        verified: false,
-        purpose,
-      },
-      order: [["createdAt", "DESC"]],
-    });
-
-    if (!otpRec)
+    const otpHash = await redisClient.get(`otp:${email}:${purpose}`);
+    if (!otpHash) {
       return {
         success: false,
-        message: "No OTP found",
-      };
-
-    if (otpRec.verified) {
-      return {
-        success: false,
-        message: "OTP already used",
+        message: "OTP not found or expired",
+        code: "OTP_NOT_FOUND",
       };
     }
 
-    if (otpRec.attempts >= 5) {
-      return {
-        success: false,
-        message: "max tries reached",
-      };
-    }
-
-    if (new Date() > new Date(otpRec.expiresAt)) {
-      await otpRec.update({ attempts: otpRec.attempts + 1 });
-      return {
-        success: false,
-        message: "OTP expired",
-      };
-    }
-
-    const validOtp = await bcrypt.compare(otp, otpRec.otp);
-
+    const validOtp = await bcrypt.compare(otp, otpHash);
     if (!validOtp) {
-      await otpRec.update({ attempts: otpRec.attempts + 1 });
-
       return {
         success: false,
-        message: `Wrong OTP. ${5 - otpRec.attempts} tries left.`,
+        message: "Invalid OTP",
+        code: "INVALID_OTP",
       };
     }
-    await otpRec.update({ verified: true });
+
+    // Only delete if explicitly requested (for transaction safety)
+    if (deleteOnSuccess) {
+      await redisClient.del(`otp:${email}:${purpose}`);
+    }
 
     return {
       success: true,
-      message: "OTP verified",
+      message: "OTP verified successfully",
+      code: "OTP_VERIFIED",
     };
   } catch (err) {
+    console.error("Error verifying OTP:", err);
     return {
       success: false,
-      message: err.message,
+      message: "Internal error during OTP verification",
+      code: "INTERNAL_ERROR",
+      error: err.message,
     };
   }
 };
 
-const hasVerifiedOTP = async (email, purpose = "verification") => {
+const checkRateLimit = async (email, purpose = "verification") => {
   try {
-    const vrfyOtp = await OTP.findOne({
-      where: {
-        email,
-        verified: true,
-        purpose,
-        expiresAt: {
-          [Op.gt]: new Date(),
-        },
-      },
-      //!RECENTLY MEI KOI VERIFIED OTP HO TOH HI AGYE BADHNA HAI , TIME CONSTRAINT WALA FACTOR IS THERE
-      //! this is used in verified OTP
-      order: [["createdAt", "DESC"]],
-    });
+    const key = `rate_limit:otp:${email}:${purpose}`;
+    const current = await redisClient.get(key);
+    const limit = 5;
 
-    return !!vrfyOtp;
+    if (current && parseInt(current) >= limit) {
+      const ttl = await redisClient.ttl(key);
+      return {
+        success: false,
+        message: `Too many OTP requests. Try again in ${Math.ceil(
+          ttl / 60
+        )} minutes.`,
+        retryAfter: ttl,
+      };
+    }
+
+    await redisClient.incr(key);
+    await redisClient.expire(key, 3600); // 1 hour expiry
+
+    return { success: true };
   } catch (err) {
-    console.error("OTP check err:", err);
-    return false;
+    console.error("Rate limit check error:", err);
+    // If Redis fails, allow the request (fail open)
+    return { success: true };
   }
 };
 
-export { generateOTP, sendOTP, verifyOTP, hasVerifiedOTP, cleanupOldOTPs };
+export { generateOTP, sendOTP, verifyOTP, checkRateLimit };

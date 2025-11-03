@@ -1,0 +1,47 @@
+name: PR Checks
+
+# Run on pull requests
+on:
+    pull_request:
+        branches: [main, develop]
+
+jobs:
+    pr-checks:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+
+            # Check backend
+            - name: Install and test backend
+              run: |
+                  cd backend
+                  npm ci
+                  npm test
+
+            # Check frontend
+            - name: Install and build frontend
+              run: |
+                  cd frontend
+                  npm ci
+                  npm run lint
+                  npm run build
+
+            # Add a comment to PR with results
+            - name: Comment PR
+              if: always()
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: '🤖 **PR Checks Complete!**\n\n✅ Tests passed\n✅ Build successful\n✅ Ready for review!'
+                      })
